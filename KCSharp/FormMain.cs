@@ -1,65 +1,69 @@
 using System.Drawing.Drawing2D;
-using Move = KCSharp.Move;
 
 namespace KCSharp
 {
     public partial class FormMain : Form
     {
-        // ¡–Ú‚Ì•
+        // å‡ç›®ã®å¹…
         const int BOX_WIDTH = 100;
-        // Î‚Ì’¼Œa
+        // çŸ³ã®ç›´å¾„
         const int STONE_SIZE = 80;
-        // ’…è‰Â”\ˆÊ’u‚Ìˆó‚Ì’¼Œa
+        // ç€æ‰‹å¯èƒ½ä½ç½®ã®å°ã®ç›´å¾„
         const int AVEILABLE_MARK_SIZE = 40;
-        // –îˆó‚Ìƒyƒ“‚Ì‘¾‚³‚ÆƒTƒCƒY
+        // çŸ¢å°ã®ãƒšãƒ³ã®å¤ªã•ã¨ã‚µã‚¤ã‚º
         Pen arrowPen = new Pen(Color.Black, 4);
         AdjustableArrowCap arrowCap = new AdjustableArrowCap(6, 6);
 
-        // ”Õ–Êƒf[ƒ^
+        // ç›¤é¢ãƒ‡ãƒ¼ã‚¿
         Board board = new Board();
-        // ‘Î‹Ç‚ÍŠJn‚µ‚½‚©H
+        // å¯¾å±€ã¯é–‹å§‹ã—ãŸã‹ï¼Ÿ
         bool isStarted = false;
 
-        // ‘I‘ğ’†‚ÌÎ‚ÌˆÊ’u
+        // é¸æŠä¸­ã®çŸ³ã®ä½ç½®
         Position selectedStone = Position.NONE;
-        // ÅŒã‚Ì’…è
-        Move[] lastMove = new Move[2]; // 0:æè,1:Œãè
-        // Î‚ğ‘I‘ğ’†‚©H
+        // æœ€å¾Œã®ç€æ‰‹
+        Move[] lastMove = new Move[2]; // 0:å…ˆæ‰‹,1:å¾Œæ‰‹
+        // çŸ³ã‚’é¸æŠä¸­ã‹ï¼Ÿ
         //bool isStoneSelected = false;
 
-        // ƒvƒŒƒCƒ„[‚Ìæè/Œãè
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å…ˆæ‰‹/å¾Œæ‰‹
         int you = Board.FIRST_MOVE;
-        // CPU‚Ìæè/Œãè
+        // CPUã®å…ˆæ‰‹/å¾Œæ‰‹
         int cpu = Board.SECOND_MOVE;
 
-        // ‰Šú‰»
+        // CPUã®æ€è€ƒã‚¨ãƒ³ã‚¸ãƒ³
+        // TODO Engine cpuEngine;
+
+        // åˆæœŸåŒ–
         public FormMain()
         {
             InitializeComponent();
 
-            // ƒQ[ƒ€İ’è‚Ì‰Šú’l
+            // ã‚²ãƒ¼ãƒ è¨­å®šã®åˆæœŸå€¤
             comboMove.SelectedIndex = 0;
             textDepth.Text = "6";
 
-            // ”Õ–Ê‚Ì‰Šú‰»
-            board.reset(false); // ‰Šú”z’u‚Í‚µ‚È‚¢
+            // ç›¤é¢ã®åˆæœŸåŒ–
+            board.reset(false); // åˆæœŸé…ç½®ã¯ã—ãªã„
             lastMove[Board.FIRST_MOVE] = KCSharp.Move.NONE;
             lastMove[Board.SECOND_MOVE] = KCSharp.Move.NONE;
             selectedStone = Position.NONE;
             drawBoard();
+            textTurn.Text = "å¯¾å±€å‰";
+            textTurn.ForeColor = Color.Green;
         }
 
-        // ”Õ–Ê‚Ì•`‰æ
+        // ç›¤é¢ã®æç”»
         private void drawBoard()
         {
             Bitmap canvas = new Bitmap(pictureBoard.Width, pictureBoard.Height);
             Graphics g = Graphics.FromImage(canvas);
 
-            // ”Õ–Ê‚Ì”wŒiF 
+            // ç›¤é¢ã®èƒŒæ™¯è‰² 
             Rectangle rect = new Rectangle(0, 0, pictureBoard.Width - 1, pictureBoard.Height - 1);
             g.FillRectangle(Brushes.DarkTurquoise, rect);
 
-            // ¡–Ú‚Ì•ü
+            // å‡ç›®ã®é»’ç·š
             int px1 = 0;
             int px2 = BOX_WIDTH * Board.SIZE;
             int py1 = 0;
@@ -75,14 +79,14 @@ namespace KCSharp
                 g.DrawLine(Pens.Black, px1, py, px2, py);
             }
 
-            // Î
+            // çŸ³
             for (int x = 0; x < Board.SIZE; x++)
             {
                 for (int y = 0; y < Board.SIZE; y++)
                 {
                     if (selectedStone != Position.NONE)
                     {
-                        // ‘I‘ğ’†‚ÌÎ‚ÍƒnƒCƒ‰ƒCƒg
+                        // é¸æŠä¸­ã®çŸ³ã¯ãƒã‚¤ãƒ©ã‚¤ãƒˆ
                         if (selectedStone.x == x && selectedStone.y == y)
                         {
                             int px = x * BOX_WIDTH + 1;
@@ -90,16 +94,16 @@ namespace KCSharp
                             int pw = BOX_WIDTH - 2;
                             g.FillRectangle(Brushes.Gold, px, py, pw, pw);
                         }
-                        // ’…è‰Â”\ˆÊ’u‚Ì¡–Ú‚É‚Íˆó‚ğ•t‚¯‚é
+                        // ç€æ‰‹å¯èƒ½ä½ç½®ã®å‡ç›®ã«ã¯å°ã‚’ä»˜ã‘ã‚‹
                         Position pos = new Position(x, y);
-                        if (board.isAveilableMove(selectedStone, pos))
+                        if (board.isAvailableMove(selectedStone, pos))
                         {
                             int px = x * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
                             int py = y * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
                             g.FillEllipse(Brushes.Gold, px, py, AVEILABLE_MARK_SIZE, AVEILABLE_MARK_SIZE);
                         }
                     }
-                    // ’¼‘O‚Ì’…è‚ğ–îˆó‚Å¦‚·
+                    // ç›´å‰ã®ç€æ‰‹ã‚’çŸ¢å°ã§ç¤ºã™
                     for(int i = 0; i < 2; i++)
                     {
                         if (lastMove[i] == KCSharp.Move.NONE)
@@ -123,14 +127,14 @@ namespace KCSharp
                         }
                     }
 
-                    // æè‚ÌÎi•j
+                    // å…ˆæ‰‹ã®çŸ³ï¼ˆé»’ï¼‰
                     if (board.stone[x, y] == Board.FIRST_MOVE)
                     {
                         int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         int py = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         g.FillEllipse(Brushes.Black, px, py, STONE_SIZE, STONE_SIZE);
                     }
-                    // Œãè‚ÌÎi”’j
+                    // å¾Œæ‰‹ã®çŸ³ï¼ˆç™½ï¼‰
                     else if (board.stone[x, y] == Board.SECOND_MOVE)
                     {
                         int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
@@ -143,55 +147,58 @@ namespace KCSharp
             g.Dispose();
             pictureBoard.Image = canvas;
 
-            // ‚Ç‚¿‚ç‚ªè”Ô‚¿‚©‚ğ•\¦
-            textTurn.Text = (board.turnHolder == you) ? "‚ ‚È‚½" : "CPU";
+            // ã©ã¡ã‚‰ãŒæ‰‹ç•ªæŒã¡ã‹ã‚’è¡¨ç¤º
+            textTurn.Text = (board.turnHolder == you) ? "ã‚ãªãŸ" : "CPU";
             textTurn.ForeColor = (board.turnHolder == you) ? Color.Red : Color.Blue;
         }
 
-        // ‘Î‹ÇŠJn/’â~ƒ{ƒ^ƒ“
+        // å¯¾å±€é–‹å§‹/åœæ­¢ãƒœã‚¿ãƒ³
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            // ’â~
+            // åœæ­¢
             if (isStarted)
             {
                 isStarted = false;
-                buttonStart.Text = "ƒXƒ^[ƒg";
+                buttonStart.Text = "å¯¾å±€é–‹å§‹";
                 comboMove.Enabled = true;
                 textDepth.Enabled = true;
+                textTurn.Text = "æŠ•äº†";
+                textTurn.ForeColor = Color.Green;
             }
-            // ŠJn
+            // é–‹å§‹
             else
             {
-                // ƒŒƒxƒ‹(æ“Ç‚İ[‚³)‚Ìİ’è‚ğƒ`ƒFƒbƒN
+                // ãƒ¬ãƒ™ãƒ«(å…ˆèª­ã¿æ·±ã•)ã®è¨­å®šã‚’ãƒã‚§ãƒƒã‚¯
+                int depth;
                 try
                 {
-                    int depth = int.Parse(textDepth.Text);
-                    if (depth < 1 || depth > 10)
-                    {
-                        throw new Exception();
-                    }
-                    Board.maxDepth = depth;
+                    depth = int.Parse(textDepth.Text);
+                    if (depth < 1) throw new Exception();
+                    Board.maxDepth = depth; // TODO
                 }
                 catch
                 {
-                    MessageBox.Show("ƒŒƒxƒ‹‚É‚Í1`10‚ğİ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+                    MessageBox.Show("èª­ã¿ã®æ·±ã•ã¯1ä»¥ä¸Šã®æ•´æ•°ã‚’è¨­å®šã—ã¦ãã ã•ã„ã€‚");
                     return;
                 }
-                // æè/Œãè‚Ìƒ`ƒFƒbƒN
+                // å…ˆæ‰‹/å¾Œæ‰‹ã®ãƒã‚§ãƒƒã‚¯
                 you = (comboMove.SelectedIndex == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE;
                 cpu = (comboMove.SelectedIndex == 0) ? Board.SECOND_MOVE : Board.FIRST_MOVE;
 
-                // ”Õ–Ê‚ÌƒŠƒZƒbƒg
-                board.reset(true); // ‰Šú”z’u‚ğ‚·‚é
+                // CPUã®æ€è€ƒã‚¨ãƒ³ã‚¸ãƒ³ã‚’ç”Ÿæˆ TODO
+                // cpuEngine = new Engine1(depth, cpu);
+
+                // ç›¤é¢ã®ãƒªã‚»ãƒƒãƒˆ
+                board.reset(true); // åˆæœŸé…ç½®ã‚’ã™ã‚‹
                 lastMove[Board.FIRST_MOVE] = KCSharp.Move.NONE;
                 lastMove[Board.SECOND_MOVE] = KCSharp.Move.NONE;
                 selectedStone = Position.NONE;
                 drawBoard();
 
-                // CPU‚ªæè‚Ìê‡
+                // CPUãŒå…ˆæ‰‹ã®å ´åˆ
                 if (cpu == Board.FIRST_MOVE)
                 {
-                    // CPU‚Ìè”Ôƒ^ƒXƒN
+                    // CPUã®æ‰‹ç•ªã‚¿ã‚¹ã‚¯
                     Task.Run(() =>
                     {
                       taskCpuTurn();
@@ -199,71 +206,73 @@ namespace KCSharp
                 }
 
                 isStarted = true;
-                buttonStart.Text = "I‚í‚é";
+                buttonStart.Text = "æŠ•äº†";
                 comboMove.Enabled = false;
                 textDepth.Enabled = false;
             }
         }
 
-        // ”Õ–Ê‚ÌƒNƒŠƒbƒNi’…è‚Ì‘€ìj
+        // ç›¤é¢ã®ã‚¯ãƒªãƒƒã‚¯ï¼ˆç€æ‰‹ã®æ“ä½œï¼‰
         private void pictureBoard_MouseClick(object sender, MouseEventArgs e)
         {
-            // ‘Î‹Ç’†‚©ƒ`ƒFƒbƒN
+            // å¯¾å±€ä¸­ã‹ãƒã‚§ãƒƒã‚¯
             if (!isStarted)
             {
                 return;
             }
-            // ƒvƒŒƒCƒ„[‚Ìè”Ô‚©ƒ`ƒFƒbƒN
+            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ‰‹ç•ªã‹ãƒã‚§ãƒƒã‚¯
             if (board.turnHolder == cpu)
             {
-                MessageBox.Show("‚ ‚È‚½‚Ìè”Ô‚Å‚Í‚ ‚è‚Ü‚¹‚ñ!");
+                MessageBox.Show("ã‚ãªãŸã®æ‰‹ç•ªã§ã¯ã‚ã‚Šã¾ã›ã‚“!");
                 return;
             }
 
-            // ’…èˆÊ’u‚ÌŒvZ
+            // ç€æ‰‹ä½ç½®ã®è¨ˆç®—
             int px = e.X;
             int py = e.Y;
             int x = px / BOX_WIDTH;
             int y = py / BOX_WIDTH;
             Position pos = new Position(x, y);
 
-            // Î‚ğ‘I‘ğ‘O
+            // çŸ³ã‚’é¸æŠå‰
             if (selectedStone == Position.NONE)
             {
-                // ‚»‚±‚ÉƒvƒŒƒCƒ„[‚ÌÎ‚ª‚ ‚é‚©”»’è
+                // ãã“ã«ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®çŸ³ãŒã‚ã‚‹ã‹åˆ¤å®š
                 if (board.isMyStone(pos))
                 {
                     selectedStone = pos;
                     drawBoard();
                 }
             }
-            // Î‚ğ‘I‘ğŒã
+            // çŸ³ã‚’é¸æŠå¾Œ
             else
             {
-                // —LŒø‚È’…è‚©ƒ`ƒFƒbƒN
-                if (board.isAveilableMove(selectedStone, pos))
+                // æœ‰åŠ¹ãªç€æ‰‹ã‹ãƒã‚§ãƒƒã‚¯
+                if (board.isAvailableMove(selectedStone, pos))
                 {
-                    // ’…è‚·‚é
+                    // ç€æ‰‹ã™ã‚‹
                     Move move = new Move(selectedStone, pos);
                     board.doMove(move);
                     lastMove[you] = move;
                     selectedStone = Position.NONE;
 
-                    // ”Õ–Ê‚Ì•`‰æ
+                    // ç›¤é¢ã®æç”»
                     drawBoard();
 
-                    // Ÿ—˜ƒ`ƒFƒbƒN
+                    // å‹åˆ©ãƒã‚§ãƒƒã‚¯
                     if (board.isSquare(you))
                     {
-                        MessageBox.Show("‚ ‚È‚½‚ÌŸ‚¿‚Å‚·I");
+                        MessageBox.Show("ã‚ãªãŸã®å‹ã¡ã§ã™ï¼");
                         isStarted = false;
-                        buttonStart.Text = "ƒXƒ^[ƒg";
+                        buttonStart.Text = "ã‚¹ã‚¿ãƒ¼ãƒˆ";
                         comboMove.Enabled = true;
                         textDepth.Enabled = true;
+                        textTurn.Text = "æŠ•äº†";
+                        textTurn.ForeColor = Color.Green;
                         return;
                     }
 
-                    // CPU‚Ìè”Ôƒ^ƒXƒN
+                    // CPUã®æ‰‹ç•ªã‚¿ã‚¹ã‚¯
                     Task.Run(() =>
                     {
                         taskCpuTurn();
@@ -272,29 +281,32 @@ namespace KCSharp
             }
         }
 
-        // CPU‚Ìè”Ôƒ^ƒXƒNŠÖ”
+        // CPUã®æ‰‹ç•ªã‚¿ã‚¹ã‚¯é–¢æ•°
         void taskCpuTurn()
         {
-            // æ“Ç‚İ
-            Read read = Board.readMinMax(board, 0, cpu);
-            Move move = read.move[0];
-            // ’…è
+            // æ¬¡ã®ç€æ‰‹ã‚’è¨ˆç®—
+            // Move next = cpuEngine.getNextMove(board); TODO
+            int eval = Board.readMinMax(board, 0, cpu);
+            Move move = Board.bestMove;
+            // ç€æ‰‹
             board.doMove(move);
             lastMove[cpu] = move;
 
             this.Invoke((Action)(() =>
             {
-                // ”Õ–Ê‚Ì•`‰æ
+                // ç›¤é¢ã®æç”»
                 drawBoard();
 
-                // Ÿ—˜ƒ`ƒFƒbƒN
+                // å‹åˆ©ãƒã‚§ãƒƒã‚¯
                 if (board.isSquare(cpu))
                 {
-                    MessageBox.Show("‚ ‚È‚½‚Ì•‰‚¯‚Å‚·I");
+                    MessageBox.Show("ã‚ãªãŸã®è² ã‘ã§ã™ï¼");
                     isStarted = false;
-                    buttonStart.Text = "ƒXƒ^[ƒg";
+                    buttonStart.Text = "ã‚¹ã‚¿ãƒ¼ãƒˆ";
                     comboMove.Enabled = true;
                     textDepth.Enabled = true;
+                    textTurn.Text = "æŠ•äº†";
+                    textTurn.ForeColor = Color.Green;
                     return;
                 }
             }));

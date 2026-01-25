@@ -64,7 +64,7 @@
             comboMove.Font = new Font("Yu Gothic UI", 16F);
             comboMove.FormattingEnabled = true;
             comboMove.Items.AddRange(new object[] { "先手", "後手" });
-            comboMove.Location = new Point(675, 40);
+            comboMove.Location = new Point(710, 40);
             comboMove.Name = "comboMove";
             comboMove.Size = new Size(140, 53);
             comboMove.TabIndex = 2;
@@ -75,14 +75,14 @@
             label2.Font = new Font("Yu Gothic UI", 16F);
             label2.Location = new Point(544, 124);
             label2.Name = "label2";
-            label2.Size = new Size(96, 45);
+            label2.Size = new Size(160, 45);
             label2.TabIndex = 3;
-            label2.Text = "レベル";
+            label2.Text = "読みの深さ";
             // 
             // textDepth
             // 
             textDepth.Font = new Font("Yu Gothic UI", 16F);
-            textDepth.Location = new Point(675, 121);
+            textDepth.Location = new Point(710, 121);
             textDepth.Name = "textDepth";
             textDepth.Size = new Size(140, 50);
             textDepth.TabIndex = 4;
@@ -90,11 +90,11 @@
             // buttonStart
             // 
             buttonStart.Font = new Font("Yu Gothic UI", 16F);
-            buttonStart.Location = new Point(639, 209);
+            buttonStart.Location = new Point(668, 211);
             buttonStart.Name = "buttonStart";
             buttonStart.Size = new Size(182, 53);
             buttonStart.TabIndex = 5;
-            buttonStart.Text = "スタート";
+            buttonStart.Text = "対局開始";
             buttonStart.UseVisualStyleBackColor = true;
             buttonStart.Click += buttonStart_Click;
             // 
@@ -112,7 +112,7 @@
             // 
             textTurn.BackColor = SystemColors.Control;
             textTurn.Font = new Font("Yu Gothic UI", 16F);
-            textTurn.Location = new Point(675, 320);
+            textTurn.Location = new Point(710, 320);
             textTurn.Name = "textTurn";
             textTurn.ReadOnly = true;
             textTurn.Size = new Size(140, 50);

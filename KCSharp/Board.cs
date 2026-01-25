@@ -38,30 +38,6 @@ namespace KCSharp
         }
     }
 
-    // 先読みデータクラス
-    class Read
-    {
-        // 評価値
-        public int eval;
-        // 着手の手順
-        public Move[] move;
-
-        // コンストラクタ(先読みの深さを指定)
-        public Read(int depth)
-        {
-            move = new Move[depth];
-        }
-    }
-
-    // 次の着手データクラス
-    class NextMove
-    {
-        // 着手
-        public Move move;
-        // 着手した後の盤面
-        public Board board;
-    }
-
     // 盤面クラス
     class Board
     {
@@ -75,7 +51,7 @@ namespace KCSharp
         public const int SIZE = 5;
 
         // CPUの先読みの深さ
-        public static int maxDepth = 8;
+        public static int maxDepth = 8; // TODO
 
         // 盤面
         public int[,] stone = new int[SIZE, SIZE];
@@ -96,7 +72,7 @@ namespace KCSharp
         private Random rand = new Random();
 
         // 盤面のコピーを生成する
-        private Board copy()
+        public Board copy()
         {
             Board board = new Board();
 
@@ -168,7 +144,7 @@ namespace KCSharp
         }
 
         // 有効な着手か判定する
-        public bool isAveilableMove(Position from, Position to)
+        public bool isAvailableMove(Position from, Position to)
         {
             // 着手前の位置に自分の石があることをチェック
             if(isMyStone(from) == false) return false;
@@ -293,9 +269,9 @@ namespace KCSharp
         }
 
         // 次の局面を列挙する
-        public List<NextMove> enumNextMoves()
+        public List<Move> enumNextMoves()
         {
-            List<NextMove> nextMoves = new List<NextMove>();
+            List<Move> nextMoves = new List<Move>();
 
             // 盤面から有効な着手を探す
             for (int x = 0; x < SIZE; x++)
@@ -318,13 +294,9 @@ namespace KCSharp
                             Position to = new Position(x + dx, y + dy);
                             if(isNoStone(to) == false) continue;
 
-                            // 有効な着手と、その場合の局面を記憶
+                            // 有効な着手を追加
                             Move move = new Move(from, to);
-                            NextMove next = new NextMove();
-                            next.board = this.copy();
-                            next.board.doMove(move);
-                            next.move = move;
-                            nextMoves.Add(next);
+                            nextMoves.Add(move);
                         }
                     }
                 }
@@ -332,57 +304,62 @@ namespace KCSharp
             return nextMoves;
         }
 
+        public static Move bestMove; // 最善手 TODO
+
         // ミニマックス法による先読み (再帰)
-        public static Read readMinMax(Board board, int depth, int player)
+        public static int readMinMax(Board board, int depth, int player)
         {
             // 先読み深さの末端に到達したら評価値を返す
             if (depth == maxDepth)
             {
-                Read read = new Read(maxDepth);
-
                 // 評価関数
-                read.eval = board.evalFunction(player);
-
-                //Debug.Write(depth + ":" + read.eval + " ");
-                return read;
+                int eval = board.evalFunction(player);
+                //Debug.Write(depth + ":" + eval + " ");
+                return eval;
             }
 
             // 次の局面を列挙
-            List<NextMove> nextMoves = board.enumNextMoves();
+            List<Move> nextMoves = board.enumNextMoves();
 
             // 自分の手番なら最も自分に有利な手を選択（自分にとっての最善手）
             // 相手の手番なら最も自分に不利な手を選択（相手にとっての最善手）
-            Read best = new Read(maxDepth); // ダミーの初期値;
-            best.eval = (board.turnHolder == player) ? int.MinValue : int.MaxValue;
+            int best = (board.turnHolder == player) ? int.MinValue : int.MaxValue;
             for (int i = 0; i < nextMoves.Count; i++)
             {
-                Read read;
-                // 正方形判定
-                if (nextMoves[i].board.isSquare(board.turnHolder))
+                Board nextBoard = board.copy();
+                nextBoard.doMove(nextMoves[i]);
+                int eval; // 評価値
+
+                // 決まり手か？ (正方形判定)
+                if (nextBoard.isSquare(board.turnHolder))
                 {
-                    read = new Read(maxDepth);
-                    read.move[depth] = nextMoves[i].move;
                     if (board.turnHolder == player) {
-                        read.eval = (maxDepth - depth) * 100;
+                        eval = (maxDepth - depth) * 100;
                     } else {
-                        read.eval = -(maxDepth - depth) * 100;
+                        eval = -(maxDepth - depth) * 100;
                     }
                 }
+                // 決まり手でないなら再帰呼び出し
                 else
                 {
-                    // 再帰呼び出し
-                    read = readMinMax(nextMoves[i].board, depth + 1, player);
+                    eval = readMinMax(nextBoard, depth + 1, player);
                 }
 
-                if ((board.turnHolder == player) && (read.eval > best.eval))
+                if ((board.turnHolder == player) && (eval > best))
                 {
-                    best = read;
-                    best.move[depth] = nextMoves[i].move;
+                    best = eval;
+                    if(depth == 0)
+                    {
+                        bestMove = nextMoves[i];
+                    }
                 }
-                if ((board.turnHolder != player) && (read.eval < best.eval))
+                if ((board.turnHolder != player) && (eval < best))
                 {
-                    best = read;
-                    best.move[depth] = nextMoves[i].move;
+                    best = eval;
+                    if(depth == 0)
+                    {
+                        bestMove = nextMoves[i];
+                    }
                 }
             }
             //Debug.WriteLine(depth + ":" + best.eval + " ");
