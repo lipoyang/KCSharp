@@ -110,6 +110,7 @@
             // 
             // textTurn
             // 
+            textTurn.BackColor = SystemColors.Control;
             textTurn.Font = new Font("Yu Gothic UI", 16F);
             textTurn.Location = new Point(675, 320);
             textTurn.Name = "textTurn";
