@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-
-namespace KCSharp
+﻿namespace KCSharp
 {
     // 位置クラス
     class Position
@@ -49,9 +44,6 @@ namespace KCSharp
         public const int NO_STONE = -1;
         // 盤のサイズ (5×5マス)
         public const int SIZE = 5;
-
-        // CPUの先読みの深さ
-        public static int maxDepth = 8; // TODO
 
         // 盤面
         public int[,] stone = new int[SIZE, SIZE];
@@ -302,68 +294,6 @@ namespace KCSharp
                 }
             }
             return nextMoves;
-        }
-
-        public static Move bestMove; // 最善手 TODO
-
-        // ミニマックス法による先読み (再帰)
-        public static int readMinMax(Board board, int depth, int player)
-        {
-            // 先読み深さの末端に到達したら評価値を返す
-            if (depth == maxDepth)
-            {
-                // 評価関数
-                int eval = board.evalFunction(player);
-                //Debug.Write(depth + ":" + eval + " ");
-                return eval;
-            }
-
-            // 次の局面を列挙
-            List<Move> nextMoves = board.enumNextMoves();
-
-            // 自分の手番なら最も自分に有利な手を選択（自分にとっての最善手）
-            // 相手の手番なら最も自分に不利な手を選択（相手にとっての最善手）
-            int best = (board.turnHolder == player) ? int.MinValue : int.MaxValue;
-            for (int i = 0; i < nextMoves.Count; i++)
-            {
-                Board nextBoard = board.copy();
-                nextBoard.doMove(nextMoves[i]);
-                int eval; // 評価値
-
-                // 決まり手か？ (正方形判定)
-                if (nextBoard.isSquare(board.turnHolder))
-                {
-                    if (board.turnHolder == player) {
-                        eval = (maxDepth - depth) * 100;
-                    } else {
-                        eval = -(maxDepth - depth) * 100;
-                    }
-                }
-                // 決まり手でないなら再帰呼び出し
-                else
-                {
-                    eval = readMinMax(nextBoard, depth + 1, player);
-                }
-
-                if ((board.turnHolder == player) && (eval > best))
-                {
-                    best = eval;
-                    if(depth == 0)
-                    {
-                        bestMove = nextMoves[i];
-                    }
-                }
-                if ((board.turnHolder != player) && (eval < best))
-                {
-                    best = eval;
-                    if(depth == 0)
-                    {
-                        bestMove = nextMoves[i];
-                    }
-                }
-            }
-            //Debug.WriteLine(depth + ":" + best.eval + " ");
-            return best;
         }
     }
 }

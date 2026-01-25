@@ -1,4 +1,4 @@
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 
 namespace KCSharp
 {
@@ -32,7 +32,7 @@ namespace KCSharp
         int cpu = Board.SECOND_MOVE;
 
         // CPUの思考エンジン
-        // TODO Engine cpuEngine;
+        Engine cpuEngine;
 
         // 初期化
         public FormMain()
@@ -174,7 +174,6 @@ namespace KCSharp
                 {
                     depth = int.Parse(textDepth.Text);
                     if (depth < 1) throw new Exception();
-                    Board.maxDepth = depth; // TODO
                 }
                 catch
                 {
@@ -185,8 +184,8 @@ namespace KCSharp
                 you = (comboMove.SelectedIndex == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE;
                 cpu = (comboMove.SelectedIndex == 0) ? Board.SECOND_MOVE : Board.FIRST_MOVE;
 
-                // CPUの思考エンジンを生成 TODO
-                // cpuEngine = new Engine1(depth, cpu);
+                // CPUの思考エンジンを生成
+                cpuEngine = new Engine1(depth, cpu);
 
                 // 盤面のリセット
                 board.reset(true); // 初期配置をする
@@ -285,9 +284,7 @@ namespace KCSharp
         void taskCpuTurn()
         {
             // 次の着手を計算
-            // Move next = cpuEngine.getNextMove(board); TODO
-            int eval = Board.readMinMax(board, 0, cpu);
-            Move move = Board.bestMove;
+            Move move = cpuEngine.getNextMove(board);
             // 着手
             board.doMove(move);
             lastMove[cpu] = move;
