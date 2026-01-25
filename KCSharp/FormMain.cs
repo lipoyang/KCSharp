@@ -30,6 +30,8 @@ namespace KCSharp
         int you = Board.FIRST_MOVE;
         // CPUの先手/後手
         int cpu = Board.SECOND_MOVE;
+        // 勝者
+        int winner = Board.NO_STONE;
 
         // CPUの思考エンジン
         Engine cpuEngine;
@@ -84,6 +86,7 @@ namespace KCSharp
             {
                 for (int y = 0; y < Board.SIZE; y++)
                 {
+                    // プレイヤーの石が選択されている場合
                     if (selectedStone != Position.NONE)
                     {
                         // 選択中の石はハイライト
@@ -103,8 +106,19 @@ namespace KCSharp
                             g.FillEllipse(Brushes.Gold, px, py, AVEILABLE_MARK_SIZE, AVEILABLE_MARK_SIZE);
                         }
                     }
+                    // 勝負がついている場合、勝者の石をハイライト
+                    if (winner != Board.NO_STONE)
+                    {
+                        if (board.stone[x, y] == winner)
+                        {
+                            int px = x * BOX_WIDTH + 1;
+                            int py = y * BOX_WIDTH + 1;
+                            int pw = BOX_WIDTH - 2;
+                            g.FillRectangle(Brushes.DeepPink, px, py, pw, pw);
+                        }
+                    }
                     // 直前の着手を矢印で示す
-                    for(int i = 0; i < 2; i++)
+                    for (int i = 0; i < 2; i++)
                     {
                         if (lastMove[i] == KCSharp.Move.NONE)
                         {
@@ -199,6 +213,7 @@ namespace KCSharp
                 // 先手/後手のチェック
                 you = (comboMove.SelectedIndex == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE;
                 cpu = (comboMove.SelectedIndex == 0) ? Board.SECOND_MOVE : Board.FIRST_MOVE;
+                winner = Board.NO_STONE;
 
                 // CPUの思考エンジンを生成
                 cpuEngine = new Engine1(depth, cpu);
@@ -275,6 +290,8 @@ namespace KCSharp
                     // 勝利チェック
                     if (board.isSquare(you))
                     {
+                        winner = you;
+                        drawBoard(); // 盤面の再描画
                         MessageBox.Show("あなたの勝ちです！");
                         isStarted = false;
                         updateControls("終了");
@@ -307,6 +324,8 @@ namespace KCSharp
                 // 勝利チェック
                 if (board.isSquare(cpu))
                 {
+                    winner = cpu;
+                    drawBoard(); // 盤面の再描画
                     MessageBox.Show("あなたの負けです！");
                     isStarted = false;
                     updateControls("終了");
