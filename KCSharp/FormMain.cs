@@ -152,20 +152,36 @@ namespace KCSharp
             textTurn.ForeColor = (board.turnHolder == you) ? Color.Red : Color.Blue;
         }
 
-        // 対局開始/停止ボタン
-        private void buttonStart_Click(object sender, EventArgs e)
+        // ボタン等の表示変更
+        private void updateControls(string status)
         {
-            // 停止
+            // 対局中か？
             if (isStarted)
             {
-                isStarted = false;
+                buttonStart.Text = "投了";    
+                comboMove.Enabled = false;
+                textDepth.Enabled = false;
+            }
+            else
+            {
                 buttonStart.Text = "対局開始";
                 comboMove.Enabled = true;
                 textDepth.Enabled = true;
-                textTurn.Text = "投了";
+                textTurn.Text = status;
                 textTurn.ForeColor = Color.Green;
             }
-            // 開始
+        }
+
+        // 対局開始/投了ボタン
+        private void buttonStart_Click(object sender, EventArgs e)
+        {
+            // 投了する
+            if (isStarted)
+            {
+                isStarted = false;
+                updateControls("投了");
+            }
+            // 対局開始する
             else
             {
                 // レベル(先読み深さ)の設定をチェック
@@ -194,6 +210,9 @@ namespace KCSharp
                 selectedStone = Position.NONE;
                 drawBoard();
 
+                isStarted = true;
+                updateControls("");
+
                 // CPUが先手の場合
                 if (cpu == Board.FIRST_MOVE)
                 {
@@ -203,11 +222,6 @@ namespace KCSharp
                       taskCpuTurn();
                     });
                 }
-
-                isStarted = true;
-                buttonStart.Text = "投了";
-                comboMove.Enabled = false;
-                textDepth.Enabled = false;
             }
         }
 
@@ -263,11 +277,7 @@ namespace KCSharp
                     {
                         MessageBox.Show("あなたの勝ちです！");
                         isStarted = false;
-                        buttonStart.Text = "スタート";
-                        comboMove.Enabled = true;
-                        textDepth.Enabled = true;
-                        textTurn.Text = "投了";
-                        textTurn.ForeColor = Color.Green;
+                        updateControls("終了");
                         return;
                     }
 
@@ -299,11 +309,7 @@ namespace KCSharp
                 {
                     MessageBox.Show("あなたの負けです！");
                     isStarted = false;
-                    buttonStart.Text = "スタート";
-                    comboMove.Enabled = true;
-                    textDepth.Enabled = true;
-                    textTurn.Text = "投了";
-                    textTurn.ForeColor = Color.Green;
+                    updateControls("終了");
                     return;
                 }
             }));
