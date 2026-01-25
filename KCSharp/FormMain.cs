@@ -262,18 +262,14 @@ namespace KCSharp
             int y = py / BOX_WIDTH;
             Position pos = new Position(x, y);
 
-            // 石を選択前
-            if (selectedStone == Position.NONE)
+            // そこにプレイヤーの石があるか判定
+            if (board.isMyStone(pos))
             {
-                // そこにプレイヤーの石があるか判定
-                if (board.isMyStone(pos))
-                {
-                    selectedStone = pos;
-                    drawBoard();
-                }
+                selectedStone = pos;
+                drawBoard();
             }
             // 石を選択後
-            else
+            else if (selectedStone != Position.NONE)
             {
                 // 有効な着手かチェック
                 if (board.isAvailableMove(selectedStone, pos))
