@@ -31,6 +31,13 @@
             this.from = from;
             this.to = to;
         }
+
+        // コピーする
+        public Move copy()
+        {
+            return new Move(new Position(this.from.x, this.from.y),
+                            new Position(this.to.x, this.to.y));
+        }
     }
 
     // 盤面クラス
@@ -44,6 +51,9 @@
         public const int NO_STONE = -1;
         // 盤のサイズ (5×5マス)
         public const int SIZE = 5;
+
+        // 最後の着手
+        public Move[] lastMove = new Move[2]; // 0:先手,1:後手
 
         // 盤面
         public int[,] stone = new int[SIZE, SIZE];
@@ -76,6 +86,8 @@
                 }
             }
             board.turn = this.turn;
+            board.lastMove[0] = this.lastMove[0].copy();
+            board.lastMove[1] = this.lastMove[1].copy();
 
             return board;
         }
@@ -99,6 +111,10 @@
                 }
             }
 
+            turn = 0;
+            lastMove[0] = Move.NONE;
+            lastMove[1] = Move.NONE;
+
             // 初期配置を行うかどうか
             if (initialPlase == false) return;
 
@@ -115,7 +131,6 @@
                 stone[x, y] = (i % 2 == 0) ? FIRST_MOVE : SECOND_MOVE;
             }
 
-            turn = 0;
         }
 
         // そこに自分の石があるか判定する
@@ -144,6 +159,14 @@
             // 着手先の位置に石が無いことをチェック
             if(isNoStone(to) == false) return false;
 
+            // うろうろ禁止ルールチェック
+            Move last = lastMove[turnHolder];
+            if ((last.from.x == to.x) && (last.from.y == to.y) &&
+                (last.to.x == from.x) && (last.to.y == from.y))
+            {
+                return false;
+            }
+
             // 選択中の石に隣接しているかチェック
             int dx = Math.Abs(to.x - from.x);
             int dy = Math.Abs(to.y - from.y);
@@ -166,6 +189,9 @@
             stone[p1.x, p1.y] = NO_STONE;
             Position p2 = move.to;
             stone[p2.x, p2.y] = mine;
+
+            // 最後の着手を更新
+            lastMove[mine] = move.copy();
         }
 
         // 正方形か判定する

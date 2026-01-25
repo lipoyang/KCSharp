@@ -21,10 +21,6 @@ namespace KCSharp
 
         // 選択中の石の位置
         Position selectedStone = Position.NONE;
-        // 最後の着手
-        Move[] lastMove = new Move[2]; // 0:先手,1:後手
-        // 石を選択中か？
-        //bool isStoneSelected = false;
 
         // プレイヤーの先手/後手
         int you = Board.FIRST_MOVE;
@@ -47,8 +43,6 @@ namespace KCSharp
 
             // 盤面の初期化
             board.reset(false); // 初期配置はしない
-            lastMove[Board.FIRST_MOVE] = KCSharp.Move.NONE;
-            lastMove[Board.SECOND_MOVE] = KCSharp.Move.NONE;
             selectedStone = Position.NONE;
             drawBoard();
             textTurn.Text = "対局前";
@@ -120,14 +114,15 @@ namespace KCSharp
                     // 直前の着手を矢印で示す
                     for (int i = 0; i < 2; i++)
                     {
-                        if (lastMove[i] == KCSharp.Move.NONE)
+                        if (board.lastMove[i] == KCSharp.Move.NONE)
                         {
                             continue;
                         }
-                        if(lastMove[i].from.x == x && lastMove[i].from.y == y)
+                        if(board.lastMove[i].from.x == x && 
+                           board.lastMove[i].from.y == y)
                         {
-                            int x2 = lastMove[i].to.x;
-                            int y2 = lastMove[i].to.y;
+                            int x2 = board.lastMove[i].to.x;
+                            int y2 = board.lastMove[i].to.y;
 
                             px1 = x * BOX_WIDTH + BOX_WIDTH / 2;
                             py1 = y * BOX_WIDTH + BOX_WIDTH / 2;
@@ -220,8 +215,6 @@ namespace KCSharp
 
                 // 盤面のリセット
                 board.reset(true); // 初期配置をする
-                lastMove[Board.FIRST_MOVE] = KCSharp.Move.NONE;
-                lastMove[Board.SECOND_MOVE] = KCSharp.Move.NONE;
                 selectedStone = Position.NONE;
                 drawBoard();
 
@@ -277,7 +270,6 @@ namespace KCSharp
                     // 着手する
                     Move move = new Move(selectedStone, pos);
                     board.doMove(move);
-                    lastMove[you] = move;
                     selectedStone = Position.NONE;
 
                     // 盤面の描画
@@ -310,7 +302,6 @@ namespace KCSharp
             Move move = cpuEngine.getNextMove(board);
             // 着手
             board.doMove(move);
-            lastMove[cpu] = move;
 
             this.Invoke((Action)(() =>
             {
