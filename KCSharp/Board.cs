@@ -78,9 +78,6 @@
             }
         }
 
-        // 乱数生成器
-        private Random rand = new Random();
-
         // 盤面のコピーを生成する
         public Board copy()
         {
@@ -304,14 +301,6 @@
                 }
             }
             return false;
-        }
-
-        // 評価関数
-        public int evalFunction(int player)
-        {
-            // TODO: 評価関数を実装する
-            int eval = rand.Next(100);
-            return eval;
         }
 
         // 次の局面を列挙する

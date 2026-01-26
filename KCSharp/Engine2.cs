@@ -1,10 +1,10 @@
 ﻿namespace KCSharp
 {
     // 思考エンジン 1号（探索：ミニマックス法、評価：速く詰むか+詰まないならランダム）
-    class Engine1 : Engine
+    class Engine2 : Engine
     {
         // コンストラクタ (読みの深さと先手/後手を指定)
-        public Engine1(int depth, int order) : base(depth, order) { }
+        public Engine2(int depth, int order) : base(depth, order) { }
 
         // 乱数生成器
         private Random rand = new Random();

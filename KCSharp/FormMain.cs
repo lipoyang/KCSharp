@@ -4,6 +4,10 @@ namespace KCSharp
 {
     public partial class FormMain : Form
     {
+        // デバッグ用
+        const bool isDebug = false; //true; // trueならCPU対CPU
+        Engine cpu2Engine;         // CPU2の思考エンジン
+
         // 升目の幅
         const int BOX_WIDTH = 100;
         // 石の直径
@@ -262,7 +266,12 @@ namespace KCSharp
                 updateControls("");
 
                 // CPUの思考エンジンを生成
-                cpuEngine = new Engine1(depth, cpu);
+                cpuEngine = new Engine2(depth, cpu);
+                if(isDebug)
+                {
+                    // デバッグ用CPU2エンジン生成
+                    cpu2Engine = new Engine1(depth, you);
+                }
 
                 // CPUが先手の場合
                 if (cpu == Board.FIRST_MOVE)
@@ -271,6 +280,14 @@ namespace KCSharp
                     Task.Run(() =>
                     {
                         taskCpuTurn();
+                    });
+                }
+                else if (isDebug)
+                {
+                    // あなたの代わりにデバッグ用CPU2の手番タスク
+                    Task.Run(() =>
+                    {
+                        taskCpu2Turn();
                     });
                 }
             }
@@ -345,7 +362,6 @@ namespace KCSharp
             Move move = cpuEngine.getNextMove(board);
             // 中断判定(投了)
             if (move == KCSharp.Move.NONE) return;
-
             // 着手
             board.doMove(move);
 
@@ -363,6 +379,49 @@ namespace KCSharp
                     updateControls("終了");
                     MessageBox.Show("あなたの負けです！");
                     return;
+                }
+                else if (isDebug)
+                {
+                    // あなたの代わりにデバッグ用CPU2の手番タスク
+                    Task.Run(() =>
+                    {
+                        taskCpu2Turn();
+                    });
+                }
+            }));
+        }
+
+        // あなたの代わりのCPU2の手番タスク関数 (デバッグ用)
+        void taskCpu2Turn()
+        {
+            // 次の手を考える
+            Move move = cpu2Engine.getNextMove(board);
+            // 中断判定(投了)
+            if (move == KCSharp.Move.NONE) return;
+            // 着手
+            board.doMove(move);
+
+            this.Invoke((Action)(() =>
+            {
+                // 盤面の描画
+                drawBoard();
+                // 勝利チェック
+                if (board.isSquare(you))
+                {
+                    winner = you;
+                    drawBoard(); // 盤面の再描画
+                    isStarted = false;
+                    updateControls("終了");
+                    MessageBox.Show("あなた(CPU2)の勝ちです！");
+                    return;
+                }
+                else if (isDebug)
+                {
+                    // CPU1の手番タスク
+                    Task.Run(() =>
+                    {
+                        taskCpuTurn();
+                    });
                 }
             }));
         }
