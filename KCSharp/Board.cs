@@ -187,7 +187,7 @@
             // 着手先の位置に石が無いことをチェック
             if(isNoStone(to) == false) return false;
 
-            // うろうろ禁止ルールチェック
+            // うろちょろ禁止ルールチェック
             Move last = lastMove[turnHolder];
             if ((last.from.x == to.x) && (last.from.y == to.y) &&
                 (last.to.x == from.x) && (last.to.y == from.y))
@@ -339,6 +339,14 @@
                             // 石がないことをチェック
                             Position to = new Position(x + dx, y + dy);
                             if(isNoStone(to) == false) continue;
+
+                            // うろちょろ禁止ルールチェック
+                            Move last = lastMove[turnHolder];
+                            if ((last.from.x == to.x) && (last.from.y == to.y) &&
+                                (last.to.x == from.x) && (last.to.y == from.y))
+                            {
+                                continue;
+                            }
 
                             // 有効な着手を追加
                             Move move = new Move(from, to);
