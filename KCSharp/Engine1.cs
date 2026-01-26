@@ -10,7 +10,14 @@
         public override Move getNextMove(Board board)
         {
             // 次の手を考える
-            readMinMax(board, 0);
+            int eval = readMinMax(board, 0);
+
+            // 中断判定
+            if (eval == int.MinValue)
+            {
+                canceled = true;
+                return Move.NONE;
+            }
 
             return bestMove;
         }
@@ -18,6 +25,9 @@
         // ミニマックス法による先読み (再帰)
         public int readMinMax(Board board, int depth)
         {
+            // 中断判定
+            if (canceling) return int.MinValue;
+
             // 先読み深さの末端に到達したら評価値を返す
             if (depth == maxDepth)
             {
@@ -55,6 +65,8 @@
                 else
                 {
                     eval = readMinMax(nextBoard, depth + 1);
+                    // 中断判定
+                    if(eval == int.MinValue) return int.MinValue;
                 }
 
                 if ((board.turnHolder == myOrder) && (eval > best))

@@ -49,7 +49,7 @@ namespace KCSharp
             // ゲーム設定の初期値
             comboMove.SelectedIndex = 0;
             comboGameType.SelectedIndex = 0;
-            textDepth.Text = "6";
+            textDepth.Text = "5";
             textGameNumber.Text = "1";
 
             // 盤面の初期化
@@ -202,6 +202,12 @@ namespace KCSharp
             // 投了する
             if (isStarted)
             {
+                // CPUの手番だったら中断させる
+                if(board.turnHolder == cpu)
+                {
+                    cpuEngine.cancel();
+                }
+
                 isStarted = false;
                 updateControls("投了");
             }
@@ -337,6 +343,9 @@ namespace KCSharp
         {
             // 次の着手を計算
             Move move = cpuEngine.getNextMove(board);
+            // 中断判定(投了)
+            if (move == KCSharp.Move.NONE) return;
+
             // 着手
             board.doMove(move);
 
