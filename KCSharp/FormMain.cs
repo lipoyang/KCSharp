@@ -29,6 +29,9 @@ namespace KCSharp
         // 勝者
         int winner = Board.NO_STONE;
 
+        // 初期局面データ
+        InitialPosition initialPosition = new InitialPosition();
+
         // CPUの思考エンジン
         Engine cpuEngine;
 
@@ -37,12 +40,20 @@ namespace KCSharp
         {
             InitializeComponent();
 
+            // 初期曲面データの読み込み
+            if(initialPosition.load() == false)
+            {
+                MessageBox.Show("初期局面データの読み込みに失敗しました。");
+            }
+
             // ゲーム設定の初期値
             comboMove.SelectedIndex = 0;
+            comboGameType.SelectedIndex = 0;
             textDepth.Text = "6";
+            textGameNumber.Text = "1";
 
             // 盤面の初期化
-            board.reset(false); // 初期配置はしない
+            board.reset(Board.InitialPosition.NONE); // 初期配置はしない
             selectedStone = Position.NONE;
             drawBoard();
             textTurn.Text = "対局前";
@@ -118,7 +129,7 @@ namespace KCSharp
                         {
                             continue;
                         }
-                        if(board.lastMove[i].from.x == x && 
+                        if (board.lastMove[i].from.x == x &&
                            board.lastMove[i].from.y == y)
                         {
                             int x2 = board.lastMove[i].to.x;
@@ -167,15 +178,19 @@ namespace KCSharp
             // 対局中か？
             if (isStarted)
             {
-                buttonStart.Text = "投了";    
+                buttonStart.Text = "投了する";
                 comboMove.Enabled = false;
                 textDepth.Enabled = false;
+                comboGameType.Enabled = false;
+                textGameNumber.Enabled = false;
             }
             else
             {
                 buttonStart.Text = "対局開始";
                 comboMove.Enabled = true;
                 textDepth.Enabled = true;
+                comboGameType.Enabled = true;
+                textGameNumber.Enabled = true;
                 textTurn.Text = status;
                 textTurn.ForeColor = Color.Green;
             }
@@ -210,16 +225,38 @@ namespace KCSharp
                 cpu = (comboMove.SelectedIndex == 0) ? Board.SECOND_MOVE : Board.FIRST_MOVE;
                 winner = Board.NO_STONE;
 
-                // CPUの思考エンジンを生成
-                cpuEngine = new Engine1(depth, cpu);
-
                 // 盤面のリセット
-                board.reset(true); // 初期配置をする
+                switch(comboGameType.SelectedIndex)
+                {
+                    // 10番勝負
+                    case 0:
+                        int gameNumber;
+                        try {
+                            gameNumber = int.Parse(textGameNumber.Text);
+                            if (gameNumber < 1 || gameNumber > 10) throw new Exception();
+                        } catch {
+                            MessageBox.Show("ゲーム番号は1～10の整数を設定してください。");
+                            return;
+                        }
+                        gameNumber--; // 0オリジンに変換
+                        Kifu black = initialPosition.black[gameNumber];
+                        Kifu white = initialPosition.white[gameNumber];
+                        board.reset(Board.InitialPosition.FIXED, black, white);
+                        break;
+
+                    // ランダム
+                    case 1:
+                        board.reset(Board.InitialPosition.RANDOM);
+                        break;
+                }
                 selectedStone = Position.NONE;
                 drawBoard();
 
                 isStarted = true;
                 updateControls("");
+
+                // CPUの思考エンジンを生成
+                cpuEngine = new Engine1(depth, cpu);
 
                 // CPUが先手の場合
                 if (cpu == Board.FIRST_MOVE)
@@ -227,7 +264,7 @@ namespace KCSharp
                     // CPUの手番タスク
                     Task.Run(() =>
                     {
-                      taskCpuTurn();
+                        taskCpuTurn();
                     });
                 }
             }
@@ -280,9 +317,9 @@ namespace KCSharp
                     {
                         winner = you;
                         drawBoard(); // 盤面の再描画
-                        MessageBox.Show("あなたの勝ちです！");
                         isStarted = false;
                         updateControls("終了");
+                        MessageBox.Show("あなたの勝ちです！");
                         return;
                     }
 
@@ -313,12 +350,29 @@ namespace KCSharp
                 {
                     winner = cpu;
                     drawBoard(); // 盤面の再描画
-                    MessageBox.Show("あなたの負けです！");
                     isStarted = false;
                     updateControls("終了");
+                    MessageBox.Show("あなたの負けです！");
                     return;
                 }
             }));
+        }
+
+        // 初期配置タイプの変更
+        private void comboGameType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboGameType.SelectedIndex == 0)
+            {
+                // 10番勝負
+                textGameNumber.Visible = true;
+                labelGameNumber.Visible = true;
+            }
+            else
+            {
+                // ランダム
+                textGameNumber.Visible = false;
+                labelGameNumber.Visible = false;
+            }
         }
     }
 }

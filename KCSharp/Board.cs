@@ -52,6 +52,14 @@
         // 盤のサイズ (5×5マス)
         public const int SIZE = 5;
 
+        // 盤面種別
+        public enum InitialPosition
+        {
+            NONE   = -1,    // 石無し
+            FIXED  = 0,     // 10番勝負
+            RANDOM = 1      // ランダム配置
+        }
+
         // 最後の着手
         public Move[] lastMove = new Move[2]; // 0:先手,1:後手
 
@@ -101,7 +109,7 @@
         }
 
         // 盤面を初期状態にリセットする
-        public void reset(bool initialPlase)
+        public void reset(InitialPosition type, Kifu black = null, Kifu white = null)
         {
             for (int x = 0; x < SIZE; x++)
             {
@@ -115,22 +123,42 @@
             lastMove[0] = Move.NONE;
             lastMove[1] = Move.NONE;
 
-            // 初期配置を行うかどうか
-            if (initialPlase == false) return;
-
-            // ランダムに初期配置
-            Random rand = new Random();
-            for (int i = 0; i < 8; i++)
+            // 初期配置
+            switch (type)
             {
-                int x, y;
-                do
-                {
-                    x = rand.Next(SIZE);
-                    y = rand.Next(SIZE);
-                } while (stone[x, y] != NO_STONE);
-                stone[x, y] = (i % 2 == 0) ? FIRST_MOVE : SECOND_MOVE;
-            }
+                // 10番勝負の初期配置
+                case InitialPosition.FIXED:
+                    // 盤面に石を配置
+                    for (int i = 0; i < 4; i++)
+                    {
+                        int bx = black.stones[i].x;
+                        int by = black.stones[i].y;
+                        stone[bx, by] = black.player;
+                        int wx = white.stones[i].x;
+                        int wy = white.stones[i].y;
+                        stone[wx, wy] = white.player;
+                    }
+                    break;
 
+                // ランダム配置
+                case InitialPosition.RANDOM:
+                    Random rand = new Random();
+                    for (int i = 0; i < 8; i++)
+                    {
+                        int x, y;
+                        do {
+                            x = rand.Next(SIZE);
+                            y = rand.Next(SIZE);
+                        } while (stone[x, y] != NO_STONE);
+                        stone[x, y] = (i % 2 == 0) ? FIRST_MOVE : SECOND_MOVE;
+                    }
+                    break;
+
+                // 石無し
+                case InitialPosition.NONE:
+                default:
+                    break;
+            }
         }
 
         // そこに自分の石があるか判定する
