@@ -222,6 +222,13 @@
         // 正方形か判定する
         public bool isSquare(int player)
         {
+            bool result = isSquare(player, out int min, out int max);
+            return result;
+        }
+        public bool isSquare(int player, out int min, out int max)
+        {
+            min = 1; max = 2;
+#if false
             // 端四判定
             if ((stone[0, 0] == player) && (stone[0, 4] == player) &&
                 (stone[4, 0] == player) && (stone[4, 4] == player))
@@ -301,6 +308,53 @@
                 }
             }
             return false;
+#endif
+            // 石の座標を取得
+            int[] sx = new int[4];
+            int[] sy = new int[4];
+            int idx = 0;
+            for (int x = 0; x < SIZE; x++) {
+                for (int y = 0; y < SIZE; y++) {
+                    if (stone[x, y] == player) {
+                        sx[idx] = x;
+                        sy[idx] = y;
+                        idx++;
+                        if(idx >= 4) break;
+                    }
+                }
+                if (idx >= 4) break;
+            }
+            if (idx != 4) return false;
+
+            // 4点間の距離の2乗を全部列挙（6個）
+            int[] d = new int[6];
+            idx = 0;
+            for (int i = 0; i < 4; i++) {
+                for (int j = i + 1; j < 4; j++) {
+                    int dx = sx[i] - sx[j];
+                    int dy = sy[i] - sy[j];
+                    d[idx] = dx * dx + dy * dy;
+                    idx++;
+                }
+            }
+
+            // 正方形か判定
+            min = d[0];
+            max = d[0];
+            int cnt = 0;
+            for (int i = 1; i < 6; i++) {
+                if (d[i] == min) {
+                    cnt++;
+                }
+                else if (d[i] < min){
+                    cnt = 0;
+                    min = d[i];
+                }
+                if(d[i] > max) {
+                    max = d[i];
+                }
+            }
+            return (cnt == 3);
         }
 
         // 次の局面を列挙する

@@ -1,4 +1,6 @@
-﻿namespace KCSharp
+﻿using System.Diagnostics;
+
+namespace KCSharp
 {
     // 思考エンジン 1号（探索：ミニマックス法、評価：速く詰むか+詰まないならランダム）
     class Engine2 : Engine
@@ -28,16 +30,21 @@
         // 評価関数
         public int evalFunction(Board board)
         {
-            // TODO: 評価関数を実装する
-            int eval;
+            int min, max;
+            bool dummy;
+            
+            // 先手の形の評価
+            dummy = board.isSquare(Board.FIRST_MOVE, out min, out max);
+            int eval_black = 100 * min / max + rand.Next(10);
+            // 後手の形の評価
+            dummy = board.isSquare(Board.SECOND_MOVE, out min, out max);
+            int eval_white = 100 * min / max + rand.Next(10);
 
-            if (board.turnHolder == myOrder)
+            // 評価値
+            int eval = eval_black - eval_white;
+            if (myOrder == Board.SECOND_MOVE)
             {
-                eval = rand.Next(50);
-            }
-            else
-            {
-                eval = -rand.Next(50);
+                eval = -eval;
             }
             return eval;
         }
@@ -88,6 +95,10 @@
                     // 中断判定
                     if(eval == int.MinValue) return int.MinValue;
                 }
+                if(depth == 0)
+                {
+                    Debug.WriteLine($"{i} : ({nextMoves[i].from.x}, {nextMoves[i].from.y})->({nextMoves[i].to.x}, {nextMoves[i].to.y}) : {eval}");
+                }
 
                 if ((board.turnHolder == myOrder) && (eval > best))
                 {
@@ -106,7 +117,10 @@
                     }
                 }
             }
-            //Debug.WriteLine(depth + ":" + best.eval + " ");
+            if (depth == 0)
+            {
+                Debug.WriteLine($"({bestMove.from.x}, {bestMove.from.y})->({bestMove.to.x}, {bestMove.to.y}) : {best}");
+            }
             return best;
         }
     }
