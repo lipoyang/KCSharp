@@ -222,93 +222,6 @@
         // 正方形か判定する
         public bool isSquare(int player)
         {
-            bool result = isSquare(player, out int min, out int max);
-            return result;
-        }
-        public bool isSquare(int player, out int min, out int max)
-        {
-            min = 1; max = 2;
-#if false
-            // 端四判定
-            if ((stone[0, 0] == player) && (stone[0, 4] == player) &&
-                (stone[4, 0] == player) && (stone[4, 4] == player))
-            {
-                return true;
-            }
-            // 菱四判定
-            if ((stone[2, 0] == player) && (stone[0, 2] == player) &&
-                (stone[4, 2] == player) && (stone[2, 4] == player))
-            {
-                return true;
-            }
-            // 崩四判定
-            if ((stone[1, 0] == player) && (stone[0, 3] == player) &&
-                (stone[4, 1] == player) && (stone[3, 4] == player))
-            {
-                return true;
-            }
-            if ((stone[0, 1] == player) && (stone[1, 4] == player) &&
-                (stone[3, 0] == player) && (stone[4, 3] == player))
-            {
-                return true;
-            }
-            // 格四判定
-            for(int x = 0; x <= 1; x++){
-                for(int y = 0; y <= 1; y++){
-                    if ((stone[x, y  ] == player) && (stone[x+3, y  ] == player) &&
-                        (stone[x, y+3] == player) && (stone[x+3, y+3] == player))
-                    {
-                        return true;
-                    }
-                }
-            }
-            // 桂四判定
-            for(int x = 0; x <= 1; x++){
-                for(int y = 0; y <= 1; y++){
-                    if ((stone[0+x, 1+y] == player) && (stone[1+x, 3+y] == player) &&
-                        (stone[2+x, 0+y] == player) && (stone[3+x, 2+y] == player))
-                    {
-                        return true;
-                    }
-                    if ((stone[1+x, 0+y] == player) && (stone[3+x, 1+y] == player) &&
-                        (stone[0+x, 2+y] == player) && (stone[2+x, 3+y] == player))
-                    {
-                        return true;
-                    }
-                }
-            }
-            // 間四判定
-            for(int x = 0; x <= 2; x++){
-                for(int y = 0; y <= 2; y++){
-                    if ((stone[x, y  ] == player) && (stone[x+2, y  ] == player) &&
-                        (stone[x, y+2] == player) && (stone[x+2, y+2] == player))
-                    {
-                        return true;
-                    }
-                }
-            }
-            // 十四判定
-            for(int x = 0; x <= 2; x++){
-                for(int y = 0; y <= 2; y++){
-                    if ((stone[1+x, 0+y] == player) && (stone[0+x, 1+y] == player) &&
-                        (stone[2+x, 1+y] == player) && (stone[1+x, 2+y] == player))
-                    {
-                        return true;
-                    }
-                }
-            }
-            // 方四判定
-            for(int x = 0; x <= 3; x++){
-                for(int y = 0; y <= 3; y++){
-                    if ((stone[x, y  ] == player) && (stone[x+1, y  ] == player) &&
-                        (stone[x, y+1] == player) && (stone[x+1, y+1] == player))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-#endif
             // 石の座標を取得
             int[] sx = new int[4];
             int[] sy = new int[4];
@@ -339,8 +252,7 @@
             }
 
             // 正方形か判定
-            min = d[0];
-            max = d[0];
+            int min = d[0];
             int cnt = 0;
             for (int i = 1; i < 6; i++) {
                 if (d[i] == min) {
@@ -349,9 +261,6 @@
                 else if (d[i] < min){
                     cnt = 0;
                     min = d[i];
-                }
-                if(d[i] > max) {
-                    max = d[i];
                 }
             }
             return (cnt == 3);

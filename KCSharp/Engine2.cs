@@ -2,9 +2,12 @@
 
 namespace KCSharp
 {
-    // 思考エンジン 1号（探索：ミニマックス法、評価：速く詰むか+詰まないならランダム）
+    // 思考エンジン 2号（探索：ミニマックス法、評価：速く詰むか+詰まないなら自乗形四率(SKR) ）
     class Engine2 : Engine
     {
+        // デバッグ用
+        const bool debugLog = false;
+
         // コンストラクタ (読みの深さと先手/後手を指定)
         public Engine2(int depth, int order) : base(depth, order) { }
 
@@ -27,21 +30,84 @@ namespace KCSharp
             return bestMove;
         }
 
+        // 自乗形四率(Square Keishi Rate)の計算 (0～100)
+        public int getSKR (Board board, int player)
+        {
+            // 石の座標を取得
+            const int SIZE = Board.SIZE;
+            int[,] stone = board.stone;
+            int[] sx = new int[4];
+            int[] sy = new int[4];
+            int idx = 0;
+            for (int x = 0; x < SIZE; x++)
+            {
+                for (int y = 0; y < SIZE; y++)
+                {
+                    if (stone[x, y] == player)
+                    {
+                        sx[idx] = x;
+                        sy[idx] = y;
+                        idx++;
+                        if (idx >= 4) break;
+                    }
+                }
+                if (idx >= 4) break;
+            }
+            if (idx != 4) return 0; // 不正
+
+            // 4点間の距離の2乗を全部列挙（6個）
+            int[] d = new int[6];
+            idx = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = i + 1; j < 4; j++)
+                {
+                    int dx = sx[i] - sx[j];
+                    int dy = sy[i] - sy[j];
+                    d[idx] = dx * dx + dy * dy;
+                    idx++;
+                }
+            }
+
+            // 正方形か判定
+            int min = d[0];
+            int max = d[0];
+            int cnt = 0;
+            for (int i = 1; i < 6; i++)
+            {
+                if (d[i] == min)
+                {
+                    cnt++;
+                }
+                else if (d[i] < min)
+                {
+                    cnt = 0;
+                    min = d[i];
+                }
+                if (d[i] > max)
+                {
+                    max = d[i];
+                }
+            }
+
+            // 自乗形四率(Square Keishi Rate)の計算 (0～100)
+            int skr = 100 * 2 * min / max;
+            return skr;
+        }
+
+
         // 評価関数
         public int evalFunction(Board board)
         {
-            int min, max;
-            bool dummy;
-            
-            // 先手の形の評価
-            dummy = board.isSquare(Board.FIRST_MOVE, out min, out max);
-            int eval_black = 100 * min / max + rand.Next(10);
-            // 後手の形の評価
-            dummy = board.isSquare(Board.SECOND_MOVE, out min, out max);
-            int eval_white = 100 * min / max + rand.Next(10);
+            // 先手の自乗形四率 * 重み + ランダム
+            int eval_black = getSKR(board, Board.FIRST_MOVE) + rand.Next(10);
+            // 後手の自乗形四率 * 重み + ランダム
+            int eval_white = getSKR(board, Board.SECOND_MOVE) + rand.Next(10);
 
             // 評価値
             int eval = eval_black - eval_white;
+            if (eval >=  100) eval =  99;
+            if (eval <= -100) eval = -99;
             if (myOrder == Board.SECOND_MOVE)
             {
                 eval = -eval;
@@ -95,7 +161,7 @@ namespace KCSharp
                     // 中断判定
                     if(eval == int.MinValue) return int.MinValue;
                 }
-                if(depth == 0)
+                if(debugLog && depth == 0)
                 {
                     Debug.WriteLine($"{i} : ({nextMoves[i].from.x}, {nextMoves[i].from.y})->({nextMoves[i].to.x}, {nextMoves[i].to.y}) : {eval}");
                 }
@@ -117,9 +183,9 @@ namespace KCSharp
                     }
                 }
             }
-            if (depth == 0)
+            if (debugLog && depth == 0)
             {
-                Debug.WriteLine($"({bestMove.from.x}, {bestMove.from.y})->({bestMove.to.x}, {bestMove.to.y}) : {best}");
+                Debug.WriteLine($"Move ({bestMove.from.x}, {bestMove.from.y})->({bestMove.to.x}, {bestMove.to.y}) : {best}");
             }
             return best;
         }

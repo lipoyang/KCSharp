@@ -5,7 +5,7 @@ namespace KCSharp
     public partial class FormMain : Form
     {
         // デバッグ用
-        const bool isDebug = false; //true; // trueならCPU対CPU
+        const bool isDebug = false; // trueならCPU対CPU
         Engine cpu2Engine;         // CPU2の思考エンジン
 
         // 升目の幅
