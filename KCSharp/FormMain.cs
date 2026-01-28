@@ -266,11 +266,12 @@ namespace KCSharp
                 updateControls("");
 
                 // CPUの思考エンジンを生成
-                cpuEngine = new Engine2(depth, cpu);
+                cpuEngine = new Engine3(depth, cpu);
                 if(isDebug)
                 {
                     // デバッグ用CPU2エンジン生成
-                    cpu2Engine = new Engine1(depth, you);
+                    cpuEngine = new Engine2(5, cpu);
+                    cpu2Engine = new Engine3(7, you);
                 }
 
                 // CPUが先手の場合
