@@ -342,31 +342,31 @@ namespace KCSharp
             return false;
         }
 
-        // 次の手を列挙する
-        public int enumNextMoves(out Move[] nextMoves)
+        // 次の局面を列挙する
+        public List<Move> enumNextMoves()
         {
-            nextMoves = new Move[32]; // 最大4石×8方向=32手
-            UInt32 myStones = (turnHolder == FIRST_MOVE) ? blackStones : whiteStones;
-            int moveCount = 0;
+            List<Move> nextMoves = new List<Move>();
 
             // 盤面から有効な着手を探す
-            for (int i = 0; i < SIZE*SIZE; i++)
+            for (int x = 0; x < SIZE; x++)
             {
-                if((myStones & 0x00000001u) != 0)
+                for (int y = 0; y < SIZE; y++)
                 {
-                    int x = i % SIZE;
-                    int y = i / SIZE;
+                    // そこに自分の石があるかチェック
                     Position from = new Position(x, y);
+                    if (isMyStone(from) == false) continue;
 
                     // 隣接するマスを調べる
-                    for (int dx = -1; dx <= 1; dx++) {
-                        for (int dy = -1; dy <= 1; dy++) {
+                    for(int dx = -1; dx <= 1; dx++)
+                    {
+                        for (int dy = -1; dy <= 1; dy++)
+                        {
                             // 元の位置はスキップ
                             if (dx == 0 && dy == 0) continue;
 
                             // 石がないことをチェック
                             Position to = new Position(x + dx, y + dy);
-                            if (isNoStone(to) == false) continue;
+                            if(isNoStone(to) == false) continue;
 
                             // うろちょろ禁止ルールチェック
                             Move last = getLastMove(turnHolder);
@@ -377,14 +377,12 @@ namespace KCSharp
 
                             // 有効な着手を追加
                             Move move = new Move(from, to);
-                            nextMoves[moveCount] = move;
-                            moveCount++;
-                        }// dyループ
-                    } // dxループ
-                } // if myStone
-                myStones >>= 1;
-            } // iループ
-            return moveCount;
+                            nextMoves.Add(move);
+                        }
+                    }
+                }
+            }
+            return nextMoves;
         }
     }
 }

@@ -130,13 +130,12 @@ namespace KCSharp
             }
 
             // 次の局面を列挙
-            Move[] nextMoves;
-            int moveCount = board.enumNextMoves(out nextMoves);
+            List<Move> nextMoves = board.enumNextMoves();
 
             // 自分の手番なら最も自分に有利な手を選択（自分にとっての最善手）
             // 相手の手番なら最も自分に不利な手を選択（相手にとっての最善手）
             int best = (board.turnHolder == myOrder) ? int.MinValue : int.MaxValue;
-            for (int i = 0; i < moveCount; i++)
+            for (int i = 0; i < nextMoves.Count; i++)
             {
                 Board nextBoard = board;
                 nextBoard.doMove(nextMoves[i]);
