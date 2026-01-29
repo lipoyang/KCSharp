@@ -118,7 +118,7 @@ namespace KCSharp
                     // 勝負がついている場合、勝者の石をハイライト
                     if (winner != Board.NO_STONE)
                     {
-                        if (board.stone[x, y] == winner)
+                        if (board.getStone(x, y) == winner)
                         {
                             int px = x * BOX_WIDTH + 1;
                             int py = y * BOX_WIDTH + 1;
@@ -129,15 +129,15 @@ namespace KCSharp
                     // 直前の着手を矢印で示す
                     for (int i = 0; i < 2; i++)
                     {
-                        if (board.lastMove[i] == KCSharp.Move.NONE)
+                        if (board.getLastMove(i) == KCSharp.Move.NONE)
                         {
                             continue;
                         }
-                        if (board.lastMove[i].from.x == x &&
-                           board.lastMove[i].from.y == y)
+                        if (board.getLastMove(i).from.x == x &&
+                            board.getLastMove(i).from.y == y)
                         {
-                            int x2 = board.lastMove[i].to.x;
-                            int y2 = board.lastMove[i].to.y;
+                            int x2 = board.getLastMove(i).to.x;
+                            int y2 = board.getLastMove(i).to.y;
 
                             px1 = x * BOX_WIDTH + BOX_WIDTH / 2;
                             py1 = y * BOX_WIDTH + BOX_WIDTH / 2;
@@ -152,14 +152,14 @@ namespace KCSharp
                     }
 
                     // 先手の石（黒）
-                    if (board.stone[x, y] == Board.FIRST_MOVE)
+                    if (board.getStone(x, y) == Board.FIRST_MOVE)
                     {
                         int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         int py = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         g.FillEllipse(Brushes.Black, px, py, STONE_SIZE, STONE_SIZE);
                     }
                     // 後手の石（白）
-                    else if (board.stone[x, y] == Board.SECOND_MOVE)
+                    else if (board.getStone(x, y) == Board.SECOND_MOVE)
                     {
                         int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         int py = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;

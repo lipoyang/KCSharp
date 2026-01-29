@@ -65,7 +65,7 @@
             int best = (board.turnHolder == myOrder) ? int.MinValue : int.MaxValue;
             for (int i = 0; i < nextMoves.Count; i++)
             {
-                Board nextBoard = board.copy();
+                Board nextBoard = board;
                 nextBoard.doMove(nextMoves[i]);
                 int eval; // 評価値
 

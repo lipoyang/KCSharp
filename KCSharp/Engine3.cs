@@ -35,7 +35,6 @@ namespace KCSharp
         {
             // 石の座標を取得
             const int SIZE = Board.SIZE;
-            int[,] stone = board.stone;
             int[] sx = new int[4];
             int[] sy = new int[4];
             int idx = 0;
@@ -43,7 +42,7 @@ namespace KCSharp
             {
                 for (int y = 0; y < SIZE; y++)
                 {
-                    if (stone[x, y] == player)
+                    if (board.getStone(x, y) == player)
                     {
                         sx[idx] = x;
                         sy[idx] = y;
@@ -137,7 +136,7 @@ namespace KCSharp
             // 相手の手番なら最も自分に不利な手を選択（相手にとっての最善手）
             for (int i = 0; i < nextMoves.Count; i++)
             {
-                Board nextBoard = board.copy();
+                Board nextBoard = board;
                 nextBoard.doMove(nextMoves[i]);
                 int eval; // 評価値
 

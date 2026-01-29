@@ -1,47 +1,73 @@
-﻿namespace KCSharp
+﻿using System.Runtime.InteropServices;
+
+namespace KCSharp
 {
-    // 位置クラス
-    class Position
+    // 位置データ
+    [StructLayout(LayoutKind.Explicit)]
+    struct Position
     {
-        public static readonly Position NONE = new Position(-1, -1);
+        public static readonly Position NONE = new Position(0xFFFF);
 
-        // 着手位置
-        public int x;
-        public int y;
+        [FieldOffset(0)]
+        public byte x;
+        [FieldOffset(1)]
+        public byte y;
+        [FieldOffset(0)]
+        public UInt16 data;
 
-        // コンストラクタ(位置を指定)
         public Position(int x, int y)
         {
-            this.x = x;
-            this.y = y;
+            this.x = (byte)x;
+            this.y = (byte)y;
+        }
+        public Position(UInt16 rawdata)
+        {
+            this.data = rawdata;
+        }
+        public static bool operator ==(Position p1, Position p2)
+        {
+            return p1.data == p2.data;
+        }
+        public static bool operator !=(Position p1, Position p2)
+        {
+            return p1.data != p2.data;
         }
     }
 
-    // 着手クラス
-    class Move
+    // 着手データ
+    [StructLayout(LayoutKind.Explicit)]
+    struct Move
     {
-        public static readonly Move NONE = new Move(Position.NONE, Position.NONE);
+        public static readonly Move NONE = new Move(0xFFFFFFFF);
 
-        public Position from;   // 着手前位置
-        public Position to;     // 着手先位置
+        [FieldOffset(0)]
+        public Position from; // 移動元
+        [FieldOffset(2)]
+        public Position to;   // 移動先
+        [FieldOffset(0)]
+        public UInt32 data;
 
-        // コンストラクタ(位置を指定)
         public Move(Position from, Position to)
         {
             this.from = from;
             this.to = to;
         }
-
-        // コピーする
-        public Move copy()
+        public Move(UInt32 rawdata)
         {
-            return new Move(new Position(this.from.x, this.from.y),
-                            new Position(this.to.x, this.to.y));
+            this.data = rawdata;
+        }
+        public static bool operator ==(Move m1, Move m2)
+        {
+            return m1.data == m2.data;
+        }
+        public static bool operator !=(Move m1, Move m2)
+        {
+            return m1.data != m2.data;
         }
     }
 
-    // 盤面クラス
-    class Board
+    // 盤面データ
+    struct Board
     {
         // 先手
         public const int FIRST_MOVE = 0;
@@ -61,40 +87,69 @@
         }
 
         // 最後の着手
-        public Move[] lastMove = new Move[2]; // 0:先手,1:後手
+        public Move lastMoveB;
+        public Move lastMoveW;
+        public Move getLastMove(int player)
+        {
+            return (player == FIRST_MOVE) ? lastMoveB : lastMoveW;
+        }
+        public void setLastMove(int player, Move move)
+        {
+            if (player == FIRST_MOVE) {
+                lastMoveB = move;
+            } else {
+                lastMoveW = move;
+            }
+        }
 
         // 盤面
-        public int[,] stone = new int[SIZE, SIZE];
+        public UInt32 blackStones; // (x,y) -> bit位置: (x + y * SIZE)
+        public UInt32 whiteStones; // (x,y) -> bit位置: (x + y * SIZE)
+
+        // 指定された場所の石を取得する
+        public int getStone(int x, int y)
+        {
+            UInt32 mask = 1u << (x + y * SIZE);
+
+            if ((blackStones & mask) != 0) return FIRST_MOVE;
+            if ((whiteStones & mask) != 0) return SECOND_MOVE;
+            return NO_STONE;
+        }
+
+        // 指定された場所の石を設定する
+        public void setStone(int x, int y, int owner)
+        {
+            UInt32 mask = 1u << (x + y * SIZE);
+
+            if (owner == FIRST_MOVE)
+            {
+                blackStones |= mask;
+                whiteStones &= ~mask;
+            }
+            else if (owner == SECOND_MOVE)
+            {
+                blackStones &= ~mask;
+                whiteStones |= mask;
+            }
+        }
+
+        // 指定された場所の石を取り除く
+        public void clearStone(int x, int y)
+        {
+            UInt32 mask = 1u << (x + y * SIZE);
+
+            blackStones &= ~mask;
+            whiteStones &= ~mask;
+        }
 
         // 対局開始からの手順数
         public int turn;
 
         // 手番持ちのプレイヤー（先手 or 後手）
-        public int turnHolder
-        {
-            get
-            {
+        public int turnHolder {
+            get {
                 return turn % 2;
             }
-        }
-
-        // 盤面のコピーを生成する
-        public Board copy()
-        {
-            Board board = new Board();
-
-            for (int x = 0; x < SIZE; x++)
-            {
-                for (int y = 0; y < SIZE; y++)
-                {
-                    board.stone[x, y] = this.stone[x, y];
-                }
-            }
-            board.turn = this.turn;
-            board.lastMove[0] = this.lastMove[0].copy();
-            board.lastMove[1] = this.lastMove[1].copy();
-
-            return board;
         }
 
         // 盤面の範囲内か判定する
@@ -108,17 +163,12 @@
         // 盤面を初期状態にリセットする
         public void reset(InitialPosition type, Kifu black = null, Kifu white = null)
         {
-            for (int x = 0; x < SIZE; x++)
-            {
-                for (int y = 0; y < SIZE; y++)
-                {
-                    stone[x, y] = NO_STONE;
-                }
-            }
-
+            // 盤面をクリア
+            blackStones = 0x0000000;
+            whiteStones = 0x0000000;
             turn = 0;
-            lastMove[0] = Move.NONE;
-            lastMove[1] = Move.NONE;
+            lastMoveB = Move.NONE;
+            lastMoveW = Move.NONE;
 
             // 初期配置
             switch (type)
@@ -130,10 +180,10 @@
                     {
                         int bx = black.stones[i].x;
                         int by = black.stones[i].y;
-                        stone[bx, by] = black.player;
+                        setStone(bx, by, black.player);
                         int wx = white.stones[i].x;
                         int wy = white.stones[i].y;
-                        stone[wx, wy] = white.player;
+                        setStone(wx, wy, white.player);
                     }
                     break;
 
@@ -146,8 +196,8 @@
                         do {
                             x = rand.Next(SIZE);
                             y = rand.Next(SIZE);
-                        } while (stone[x, y] != NO_STONE);
-                        stone[x, y] = (i % 2 == 0) ? FIRST_MOVE : SECOND_MOVE;
+                        } while (getStone(x, y) != NO_STONE);
+                        setStone(x, y, (i % 2 == 0) ? FIRST_MOVE : SECOND_MOVE);
                     }
                     break;
 
@@ -163,7 +213,7 @@
         {
             int mine = turnHolder;
             if (!isInBoard(pos.x, pos.y)) return false;
-            if (stone[pos.x, pos.y] != mine) return false;
+            if (getStone(pos.x, pos.y) != mine) return false;
             return true;
         }
 
@@ -171,7 +221,7 @@
         public bool isNoStone(Position pos)
         {
             if (!isInBoard(pos.x, pos.y)) return false;
-            if (stone[pos.x, pos.y] != NO_STONE) return false;
+            if (getStone(pos.x, pos.y) != NO_STONE) return false;
             return true;
         }
 
@@ -185,7 +235,7 @@
             if(isNoStone(to) == false) return false;
 
             // うろちょろ禁止ルールチェック
-            Move last = lastMove[turnHolder];
+            Move last = getLastMove(turnHolder);
             if ((last.from.x == to.x) && (last.from.y == to.y) &&
                 (last.to.x == from.x) && (last.to.y == from.y))
             {
@@ -211,12 +261,12 @@
 
             // 石の移動
             Position p1 = move.from;
-            stone[p1.x, p1.y] = NO_STONE;
+            clearStone(p1.x, p1.y);
             Position p2 = move.to;
-            stone[p2.x, p2.y] = mine;
+            setStone(p2.x, p2.y, mine);
 
             // 最後の着手を更新
-            lastMove[mine] = move.copy();
+            setLastMove(mine, move);
         }
 
         // 正方形か判定する
@@ -228,7 +278,7 @@
             int idx = 0;
             for (int x = 0; x < SIZE; x++) {
                 for (int y = 0; y < SIZE; y++) {
-                    if (stone[x, y] == player) {
+                    if (getStone(x, y) == player) {
                         sx[idx] = x;
                         sy[idx] = y;
                         idx++;
@@ -293,7 +343,7 @@
                             if(isNoStone(to) == false) continue;
 
                             // うろちょろ禁止ルールチェック
-                            Move last = lastMove[turnHolder];
+                            Move last = getLastMove(turnHolder);
                             if ((last.from.x == to.x) && (last.from.y == to.y) &&
                                 (last.to.x == from.x) && (last.to.y == from.y))
                             {
