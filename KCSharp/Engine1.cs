@@ -58,12 +58,13 @@
             }
 
             // 次の局面を列挙
-            List<Move> nextMoves = board.enumNextMoves();
+            Move[] nextMoves;
+            int moveCount = board.enumNextMoves(out nextMoves);
 
             // 自分の手番なら最も自分に有利な手を選択（自分にとっての最善手）
             // 相手の手番なら最も自分に不利な手を選択（相手にとっての最善手）
             int best = (board.turnHolder == myOrder) ? int.MinValue : int.MaxValue;
-            for (int i = 0; i < nextMoves.Count; i++)
+            for (int i = 0; i < moveCount; i++)
             {
                 Board nextBoard = board;
                 nextBoard.doMove(nextMoves[i]);
