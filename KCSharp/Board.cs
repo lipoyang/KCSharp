@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace KCSharp
 {
@@ -124,11 +125,7 @@ namespace KCSharp
             if (owner == FIRST_MOVE)
             {
                 blackStones |= mask;
-                whiteStones &= ~mask;
-            }
-            else if (owner == SECOND_MOVE)
-            {
-                blackStones &= ~mask;
+            } else {
                 whiteStones |= mask;
             }
         }
@@ -236,8 +233,7 @@ namespace KCSharp
 
             // うろちょろ禁止ルールチェック
             Move last = getLastMove(turnHolder);
-            if ((last.from.x == to.x) && (last.from.y == to.y) &&
-                (last.to.x == from.x) && (last.to.y == from.y))
+            if ((last.from == to) && (last.to == from))
             {
                 return false;
             }
@@ -255,7 +251,6 @@ namespace KCSharp
         {
             // 先手/後手か
             int mine = turnHolder;
-            // int his = (mine == FIRST_MOVE) ? SECOND_MOVE : FIRST_MOVE;
             // 手順数を進める
             turn++;
 
@@ -272,48 +267,79 @@ namespace KCSharp
         // 正方形か判定する
         public bool isSquare(int player)
         {
-            // 石の座標を取得
-            int[] sx = new int[4];
-            int[] sy = new int[4];
-            int idx = 0;
-            for (int x = 0; x < SIZE; x++) {
-                for (int y = 0; y < SIZE; y++) {
-                    if (getStone(x, y) == player) {
-                        sx[idx] = x;
-                        sy[idx] = y;
-                        idx++;
-                        if(idx >= 4) break;
-                    }
-                }
-                if (idx >= 4) break;
-            }
-            if (idx != 4) return false;
+            UInt32 stones = (player == FIRST_MOVE) ? blackStones : whiteStones;
 
-            // 4点間の距離の2乗を全部列挙（6個）
-            int[] d = new int[6];
-            idx = 0;
-            for (int i = 0; i < 4; i++) {
-                for (int j = i + 1; j < 4; j++) {
-                    int dx = sx[i] - sx[j];
-                    int dy = sy[i] - sy[j];
-                    d[idx] = dx * dx + dy * dy;
-                    idx++;
+            // 端四判定
+            if (stones == 0x1100011) {
+                return true;
+            }
+            // 菱四判定
+            if (stones == 0x0404404) {
+                return true;
+            }
+            // 崩四判定
+            if (stones == 0x0808202 || stones == 0x0280028)
+            {
+                return true;
+            }
+            // 格四判定
+            if ((stones & 0x0000063) != 0)
+            {
+                const UInt32 pattern = 0x0048009;
+                if ( stones       == pattern) return true;
+                if ((stones >> 1) == pattern) return true;
+                if ((stones >> 5) == pattern) return true;
+                if ((stones >> 6) == pattern) return true;
+            }
+            // 桂四判定
+            if ((stones & 0x000018C) != 0)
+            {
+                const UInt32 pattern = 0x0012024;
+                if ( stones       == pattern) return true;
+                if ((stones >> 1) == pattern) return true;
+                if ((stones >> 5) == pattern) return true;
+                if ((stones >> 6) == pattern) return true;
+            }
+            if ((stones & 0x00000C6) != 0)
+            {
+                const UInt32 pattern = 0x0020502;
+                if ( stones       == pattern) return true;
+                if ((stones >> 1) == pattern) return true;
+                if ((stones >> 5) == pattern) return true;
+                if ((stones >> 6) == pattern) return true;
+            }
+            // 間四判定
+            if ((stones & 0x0001CE7) != 0)
+            {
+                int tz = BitOperations.TrailingZeroCount(stones);
+                if ((tz % 5 <= 2) && (tz / 5 <= 2))
+                {
+                    UInt32 shifted = stones >> tz;
+                    if (shifted == 0x0001405) return true;
                 }
             }
-
-            // 正方形か判定
-            int min = d[0];
-            int cnt = 0;
-            for (int i = 1; i < 6; i++) {
-                if (d[i] == min) {
-                    cnt++;
-                }
-                else if (d[i] < min){
-                    cnt = 0;
-                    min = d[i];
+            // 十四判定
+            if ((stones & 0x00039CE) != 0)
+            {
+                int tz = BitOperations.TrailingZeroCount(stones);
+                int _tz = tz - 1;
+                if ((_tz % 5 <= 2) && (_tz / 5 <= 2))
+                {
+                    UInt32 shifted = stones >> tz;
+                    if (shifted == 0x00008A2) return true;
                 }
             }
-            return (cnt == 3);
+            // 方四判定
+            if ((stones & 0x007BDEF) != 0)
+            {
+                int tz = BitOperations.TrailingZeroCount(stones);
+                if ((tz % 5 <= 3) && (tz / 5 <= 3))
+                {
+                    UInt32 shifted = stones >> tz;
+                    if (shifted == 0x0000063) return true;
+                }
+            }
+            return false;
         }
 
         // 次の手を列挙する
@@ -344,8 +370,7 @@ namespace KCSharp
 
                             // うろちょろ禁止ルールチェック
                             Move last = getLastMove(turnHolder);
-                            if ((last.from.x == to.x) && (last.from.y == to.y) &&
-                                (last.to.x == from.x) && (last.to.y == from.y))
+                            if ((last.from == to) && (last.to == from))
                             {
                                 continue;
                             }
