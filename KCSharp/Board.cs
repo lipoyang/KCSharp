@@ -342,10 +342,10 @@ namespace KCSharp
             return false;
         }
 
-        // 次の局面を列挙する
-        public List<Move> enumNextMoves()
+        // 次の手を列挙する
+        public int enumNextMoves(Span<Move> nextMoves)
         {
-            List<Move> nextMoves = new List<Move>();
+            int moveCount = 0;
 
             // 盤面から有効な着手を探す
             for (int x = 0; x < SIZE; x++)
@@ -377,12 +377,13 @@ namespace KCSharp
 
                             // 有効な着手を追加
                             Move move = new Move(from, to);
-                            nextMoves.Add(move);
+                            nextMoves[moveCount] = move;
+                            moveCount++;
                         }
                     }
                 }
             }
-            return nextMoves;
+            return moveCount;
         }
     }
 }

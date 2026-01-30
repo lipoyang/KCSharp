@@ -14,6 +14,11 @@ namespace KCSharp
         // 乱数生成器
         private Random rand = new Random();
 
+        // 次の手の候補用バッファ (1局面最大32通り×最大探索深さ)
+        private const int MAX_MOVE = 32;
+        private const int MAX_DEPTH = 10;
+        private Move[] moveBuffer = new Move[MAX_MOVE * MAX_DEPTH];
+
         // 次の手を取得する
         public override Move getNextMove(Board board)
         {
@@ -130,11 +135,12 @@ namespace KCSharp
             }
 
             // 次の局面を列挙
-            List<Move> nextMoves = board.enumNextMoves();
+            Span<Move> nextMoves = new Span<Move>(moveBuffer, MAX_MOVE * depth, MAX_MOVE);
+            int moveCount = board.enumNextMoves(nextMoves);
 
             // 自分の手番なら最も自分に有利な手を選択（自分にとっての最善手）
             // 相手の手番なら最も自分に不利な手を選択（相手にとっての最善手）
-            for (int i = 0; i < nextMoves.Count; i++)
+            for (int i = 0; i < moveCount; i++)
             {
                 Board nextBoard = board;
                 nextBoard.doMove(nextMoves[i]);
