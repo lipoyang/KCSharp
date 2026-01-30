@@ -57,6 +57,10 @@ namespace KCSharp
         {
             this.data = rawdata;
         }
+        public Move invert()
+        {
+            return new Move(this.to, this.from);
+        }
         public static bool operator ==(Move m1, Move m2)
         {
             return m1.data == m2.data;
@@ -346,31 +350,40 @@ namespace KCSharp
         public int enumNextMoves(Span<Move> nextMoves)
         {
             int moveCount = 0;
+            UInt32 myStones = (turnHolder == FIRST_MOVE) ? blackStones : whiteStones;
+            Move urochoro = getLastMove(turnHolder).invert(); // うろちょろ禁止着手
 
             // 盤面から有効な着手を探す
-            for (int x = 0; x < SIZE; x++)
+            for (int i = 0; i < SIZE * SIZE; i++)
             {
-                for (int y = 0; y < SIZE; y++)
+                // そこに自分の石があるかチェック
+                if ((myStones & 0x00000001u) != 0)
                 {
-                    // そこに自分の石があるかチェック
+                    int x = i % SIZE;
+                    int y = i / SIZE;
                     Position from = new Position(x, y);
-                    if (isMyStone(from) == false) continue;
 
                     // 隣接するマスを調べる
-                    for(int dx = -1; dx <= 1; dx++)
+                    UInt32 occupied = blackStones | whiteStones;
+                    int dx1 = (x > 0) ? x - 1 : 0;
+                    int dx2 = (x < SIZE - 1) ? x + 1 : SIZE - 1;
+                    int dy1 = (y > 0) ? y - 1 : 0;
+                    int dy2 = (y < SIZE - 1) ? y + 1 : SIZE - 1;
+                    for (int dx = dx1; dx <= dx2; dx++)
                     {
-                        for (int dy = -1; dy <= 1; dy++)
+                        for (int dy = dy1; dy <= dy2; dy++)
                         {
                             // 元の位置はスキップ
-                            if (dx == 0 && dy == 0) continue;
+                            if (dx == x && dy == y) continue;
 
                             // 石がないことをチェック
-                            Position to = new Position(x + dx, y + dy);
-                            if(isNoStone(to) == false) continue;
+                            UInt32 pos = 1u << (dx + dy * SIZE);
+                            if ((pos & occupied) != 0) continue;
+
+                            Position to = new Position(dx, dy);
 
                             // うろちょろ禁止ルールチェック
-                            Move last = getLastMove(turnHolder);
-                            if ((last.from == to) && (last.to == from))
+                            if ((to == urochoro.to) && (from == urochoro.from))
                             {
                                 continue;
                             }
@@ -379,10 +392,11 @@ namespace KCSharp
                             Move move = new Move(from, to);
                             nextMoves[moveCount] = move;
                             moveCount++;
-                        }
-                    }
-                }
-            }
+                        } // for dx
+                    } // for dy
+                } // if そこに石があるか
+                myStones >>= 1;
+            } // for i
             return moveCount;
         }
     }
