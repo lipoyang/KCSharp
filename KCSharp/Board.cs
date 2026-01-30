@@ -329,7 +329,7 @@ namespace KCSharp
                 int _tz = tz - 1;
                 if ((_tz % 5 <= 2) && (_tz / 5 <= 2))
                 {
-                    UInt32 shifted = stones >> tz;
+                    UInt32 shifted = stones >> _tz;
                     if (shifted == 0x00008A2) return true;
                 }
             }
