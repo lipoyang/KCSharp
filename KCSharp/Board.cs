@@ -350,53 +350,56 @@ namespace KCSharp
         public int enumNextMoves(Span<Move> nextMoves)
         {
             int moveCount = 0;
-            UInt32 myStones = (turnHolder == FIRST_MOVE) ? blackStones : whiteStones;
+            UInt32 stones = (turnHolder == FIRST_MOVE) ? blackStones : whiteStones;
             Move urochoro = getLastMove(turnHolder).invert(); // うろちょろ禁止着手
 
             // 盤面から有効な着手を探す
-            for (int i = 0; i < SIZE * SIZE; i++)
+            int cnt = 0;
+            while (stones != 0 && cnt < 4)
             {
-                // そこに自分の石があるかチェック
-                if ((myStones & 0x00000001u) != 0)
+                // 最下位の 1 ビットの位置を取得
+                int tz = BitOperations.TrailingZeroCount(stones);
+                // 最下位の 1 ビットを落とす
+                stones &= stones - 1;
+
+                // 座標に変換
+                int x = tz % SIZE;
+                int y = tz / SIZE;
+                Position from = new Position(x, y);
+                cnt++;
+
+                // 隣接するマスを調べる
+                UInt32 occupied = blackStones | whiteStones;
+                int dx1 = (x > 0) ? x - 1 : 0;
+                int dx2 = (x < SIZE - 1) ? x + 1 : SIZE - 1;
+                int dy1 = (y > 0) ? y - 1 : 0;
+                int dy2 = (y < SIZE - 1) ? y + 1 : SIZE - 1;
+                for (int dx = dx1; dx <= dx2; dx++)
                 {
-                    int x = i % SIZE;
-                    int y = i / SIZE;
-                    Position from = new Position(x, y);
-
-                    // 隣接するマスを調べる
-                    UInt32 occupied = blackStones | whiteStones;
-                    int dx1 = (x > 0) ? x - 1 : 0;
-                    int dx2 = (x < SIZE - 1) ? x + 1 : SIZE - 1;
-                    int dy1 = (y > 0) ? y - 1 : 0;
-                    int dy2 = (y < SIZE - 1) ? y + 1 : SIZE - 1;
-                    for (int dx = dx1; dx <= dx2; dx++)
+                    for (int dy = dy1; dy <= dy2; dy++)
                     {
-                        for (int dy = dy1; dy <= dy2; dy++)
+                        // 元の位置はスキップ
+                        if (dx == x && dy == y) continue;
+
+                        // 石がないことをチェック
+                        UInt32 pos = 1u << (dx + dy * SIZE);
+                        if ((pos & occupied) != 0) continue;
+
+                        Position to = new Position(dx, dy);
+
+                        // うろちょろ禁止ルールチェック
+                        if ((to == urochoro.to) && (from == urochoro.from))
                         {
-                            // 元の位置はスキップ
-                            if (dx == x && dy == y) continue;
+                            continue;
+                        }
 
-                            // 石がないことをチェック
-                            UInt32 pos = 1u << (dx + dy * SIZE);
-                            if ((pos & occupied) != 0) continue;
-
-                            Position to = new Position(dx, dy);
-
-                            // うろちょろ禁止ルールチェック
-                            if ((to == urochoro.to) && (from == urochoro.from))
-                            {
-                                continue;
-                            }
-
-                            // 有効な着手を追加
-                            Move move = new Move(from, to);
-                            nextMoves[moveCount] = move;
-                            moveCount++;
-                        } // for dx
-                    } // for dy
-                } // if そこに石があるか
-                myStones >>= 1;
-            } // for i
+                        // 有効な着手を追加
+                        Move move = new Move(from, to);
+                        nextMoves[moveCount] = move;
+                        moveCount++;
+                    } // for dx
+                } // for dy
+            } // while (stones != 0 && cnt < 4)
             return moveCount;
         }
     }

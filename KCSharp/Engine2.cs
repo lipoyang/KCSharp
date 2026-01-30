@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace KCSharp
 {
@@ -36,31 +37,33 @@ namespace KCSharp
         }
 
         // 自乗形四率(Square Keishi Rate)の計算 (0～100)
+        int[] sx = new int[4];
+        int[] sy = new int[4];
         public int getSKR (Board board, int player)
         {
             // 石の座標を取得
             const int SIZE = Board.SIZE;
-            int[] sx = new int[4];
-            int[] sy = new int[4];
+            UInt32 stones = (player == Board.FIRST_MOVE) ? board.blackStones : board.whiteStones;
             int idx = 0;
-            for (int x = 0; x < SIZE; x++)
+            while (stones != 0 && idx < 4)
             {
-                for (int y = 0; y < SIZE; y++)
-                {
-                    if (board.getStone(x, y) == player)
-                    {
-                        sx[idx] = x;
-                        sy[idx] = y;
-                        idx++;
-                        if (idx >= 4) break;
-                    }
-                }
-                if (idx >= 4) break;
+                // 最下位の 1 ビットの位置を取得
+                int pos = BitOperations.TrailingZeroCount(stones);
+
+                // 座標に変換
+                sx[idx] = pos % SIZE;
+                sy[idx] = pos / SIZE;
+                idx++;
+
+                // 最下位の 1 ビットを落とす
+                stones &= stones - 1;
             }
             if (idx != 4) return 0; // 不正
 
             // 4点間の距離の2乗を全部列挙（6個）
-            int[] d = new int[6];
+            // そのうちの最大値と最小値を求める
+            int min = int.MaxValue;
+            int max = int.MinValue;
             idx = 0;
             for (int i = 0; i < 4; i++)
             {
@@ -68,29 +71,10 @@ namespace KCSharp
                 {
                     int dx = sx[i] - sx[j];
                     int dy = sy[i] - sy[j];
-                    d[idx] = dx * dx + dy * dy;
+                    int dist = dx * dx + dy * dy;
+                    if (dist < min) min = dist;
+                    if (dist > max) max = dist;
                     idx++;
-                }
-            }
-
-            // 正方形か判定
-            int min = d[0];
-            int max = d[0];
-            int cnt = 0;
-            for (int i = 1; i < 6; i++)
-            {
-                if (d[i] == min)
-                {
-                    cnt++;
-                }
-                else if (d[i] < min)
-                {
-                    cnt = 0;
-                    min = d[i];
-                }
-                if (d[i] > max)
-                {
-                    max = d[i];
                 }
             }
 
