@@ -40,6 +40,10 @@
             label4 = new Label();
             textGameNumber = new TextBox();
             labelGameNumber = new Label();
+            buttonUndo = new Button();
+            buttonRedo = new Button();
+            textTurnNum = new TextBox();
+            label5 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBoard).BeginInit();
             SuspendLayout();
             // 
@@ -79,9 +83,9 @@
             label2.Font = new Font("Yu Gothic UI", 16F);
             label2.Location = new Point(544, 213);
             label2.Name = "label2";
-            label2.Size = new Size(160, 45);
+            label2.Size = new Size(96, 45);
             label2.TabIndex = 3;
-            label2.Text = "読みの深さ";
+            label2.Text = "レベル";
             // 
             // textDepth
             // 
@@ -106,7 +110,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Yu Gothic UI", 16F);
-            label3.Location = new Point(544, 406);
+            label3.Location = new Point(544, 385);
             label3.Name = "label3";
             label3.Size = new Size(84, 45);
             label3.TabIndex = 6;
@@ -116,7 +120,7 @@
             // 
             textTurn.BackColor = SystemColors.Control;
             textTurn.Font = new Font("Yu Gothic UI", 16F);
-            textTurn.Location = new Point(710, 403);
+            textTurn.Location = new Point(710, 382);
             textTurn.Name = "textTurn";
             textTurn.ReadOnly = true;
             textTurn.Size = new Size(182, 50);
@@ -162,11 +166,59 @@
             labelGameNumber.TabIndex = 10;
             labelGameNumber.Text = "No";
             // 
+            // buttonUndo
+            // 
+            buttonUndo.Font = new Font("Yu Gothic UI", 14F);
+            buttonUndo.Location = new Point(710, 468);
+            buttonUndo.Name = "buttonUndo";
+            buttonUndo.Size = new Size(84, 53);
+            buttonUndo.TabIndex = 12;
+            buttonUndo.Text = "戻る";
+            buttonUndo.UseVisualStyleBackColor = true;
+            buttonUndo.Click += buttonUndo_Click;
+            // 
+            // buttonRedo
+            // 
+            buttonRedo.Font = new Font("Yu Gothic UI", 14F);
+            buttonRedo.Location = new Point(808, 468);
+            buttonRedo.Name = "buttonRedo";
+            buttonRedo.Size = new Size(84, 53);
+            buttonRedo.TabIndex = 13;
+            buttonRedo.Text = "進む";
+            buttonRedo.UseVisualStyleBackColor = true;
+            buttonRedo.Click += buttonRedo_Click;
+            // 
+            // textTurnNum
+            // 
+            textTurnNum.BackColor = SystemColors.Control;
+            textTurnNum.Font = new Font("Yu Gothic UI", 16F);
+            textTurnNum.Location = new Point(544, 467);
+            textTurnNum.Name = "textTurnNum";
+            textTurnNum.ReadOnly = true;
+            textTurnNum.Size = new Size(77, 50);
+            textTurnNum.TabIndex = 14;
+            textTurnNum.Text = "0";
+            textTurnNum.TextAlign = HorizontalAlignment.Center;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Font = new Font("Yu Gothic UI", 16F);
+            label5.Location = new Point(620, 470);
+            label5.Name = "label5";
+            label5.Size = new Size(84, 45);
+            label5.TabIndex = 15;
+            label5.Text = "手目";
+            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(928, 544);
+            Controls.Add(label5);
+            Controls.Add(textTurnNum);
+            Controls.Add(buttonRedo);
+            Controls.Add(buttonUndo);
             Controls.Add(textGameNumber);
             Controls.Add(labelGameNumber);
             Controls.Add(label4);
@@ -202,5 +254,9 @@
         private Label label4;
         private TextBox textGameNumber;
         private Label labelGameNumber;
+        private Button buttonUndo;
+        private Button buttonRedo;
+        private TextBox textTurnNum;
+        private Label label5;
     }
 }

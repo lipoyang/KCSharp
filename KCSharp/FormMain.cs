@@ -20,8 +20,18 @@ namespace KCSharp
 
         // 盤面データ
         Board board = new Board();
-        // 対局は開始したか？
-        bool isStarted = false;
+        // 状態
+        enum GameStatus{
+            BEFORE_GAME, // 対局前
+            DURING_GAME, // 対局中
+            FINISHED,    // 終了
+            RESIGNED     // 投了
+        }
+        GameStatus gameStatus = GameStatus.BEFORE_GAME;
+        // 何手目か
+        int turnCnt = 0;
+        // 盤面履歴
+        List<Board> record = new List<Board>();
 
         // 選択中の石の位置
         Position selectedStone = Position.NONE;
@@ -53,15 +63,14 @@ namespace KCSharp
             // ゲーム設定の初期値
             comboMove.SelectedIndex = 0;
             comboGameType.SelectedIndex = 0;
-            textDepth.Text = "5";
+            textDepth.Text = "7";
             textGameNumber.Text = "1";
 
             // 盤面の初期化
             board.reset(Board.InitialPosition.NONE); // 初期配置はしない
             selectedStone = Position.NONE;
             drawBoard();
-            textTurn.Text = "対局前";
-            textTurn.ForeColor = Color.Green;
+            updateControls();
         }
 
         // 盤面の描画
@@ -116,7 +125,7 @@ namespace KCSharp
                         }
                     }
                     // 勝負がついている場合、勝者の石をハイライト
-                    if (winner != Board.NO_STONE)
+                    if (winner != Board.NO_STONE && turnCnt == record.Count - 1)
                     {
                         if (board.getStone(x, y) == winner)
                         {
@@ -172,15 +181,37 @@ namespace KCSharp
             pictureBoard.Image = canvas;
 
             // どちらが手番持ちかを表示
-            textTurn.Text = (board.turnHolder == you) ? "あなた" : "CPU";
-            textTurn.ForeColor = (board.turnHolder == you) ? Color.Red : Color.Blue;
+            switch(gameStatus)
+            {
+                case GameStatus.BEFORE_GAME:
+                    textTurn.Text = "対局前";
+                    textTurn.ForeColor = Color.Green;
+                    break;
+                case GameStatus.DURING_GAME:
+                    textTurn.Text = (board.turnHolder == you) ? "あなた" : "CPU";
+                    textTurn.ForeColor = (board.turnHolder == you) ? Color.Red : Color.Blue;
+                    break;
+                case GameStatus.FINISHED:
+                    textTurn.Text = "終了";
+                    textTurn.ForeColor = Color.Green;
+                    break;
+                case GameStatus.RESIGNED:
+                    textTurn.Text = "投了";
+                    textTurn.ForeColor = Color.Green;
+                    break;
+            }
+            
+            // 何手目かを表示
+            textTurnNum.Text = turnCnt.ToString();
+            buttonUndo.Enabled = (turnCnt > 0);
+            buttonRedo.Enabled = (turnCnt < record.Count - 1);
         }
 
         // ボタン等の表示変更
-        private void updateControls(string status)
+        private void updateControls()
         {
             // 対局中か？
-            if (isStarted)
+            if (gameStatus == GameStatus.DURING_GAME)
             {
                 buttonStart.Text = "投了する";
                 comboMove.Enabled = false;
@@ -195,8 +226,6 @@ namespace KCSharp
                 textDepth.Enabled = true;
                 comboGameType.Enabled = true;
                 textGameNumber.Enabled = true;
-                textTurn.Text = status;
-                textTurn.ForeColor = Color.Green;
             }
         }
 
@@ -204,16 +233,16 @@ namespace KCSharp
         private void buttonStart_Click(object sender, EventArgs e)
         {
             // 投了する
-            if (isStarted)
+            if (gameStatus == GameStatus.DURING_GAME)
             {
                 // CPUの手番だったら中断させる
                 if(board.turnHolder == cpu)
                 {
                     cpuEngine.cancel();
                 }
-
-                isStarted = false;
-                updateControls("投了");
+                gameStatus = GameStatus.RESIGNED;
+                drawBoard();
+                updateControls();
             }
             // 対局開始する
             else
@@ -260,10 +289,13 @@ namespace KCSharp
                         break;
                 }
                 selectedStone = Position.NONE;
-                drawBoard();
+                turnCnt = 0;
+                record.Clear();
+                record.Add(board);
 
-                isStarted = true;
-                updateControls("");
+                gameStatus = GameStatus.DURING_GAME;
+                drawBoard();
+                updateControls();
 
                 // CPUの思考エンジンを生成
                 cpuEngine = new Engine3(depth, cpu);
@@ -298,7 +330,7 @@ namespace KCSharp
         private void pictureBoard_MouseClick(object sender, MouseEventArgs e)
         {
             // 対局中かチェック
-            if (!isStarted)
+            if (gameStatus != GameStatus.DURING_GAME)
             {
                 return;
             }
@@ -332,6 +364,8 @@ namespace KCSharp
                     Move move = new Move(selectedStone, pos);
                     board.doMove(move);
                     selectedStone = Position.NONE;
+                    turnCnt++;
+                    record.Add(board);
 
                     // 盤面の描画
                     drawBoard();
@@ -340,9 +374,9 @@ namespace KCSharp
                     if (board.isSquare(you))
                     {
                         winner = you;
-                        drawBoard(); // 盤面の再描画
-                        isStarted = false;
-                        updateControls("終了");
+                        gameStatus = GameStatus.FINISHED;
+                        drawBoard();
+                        updateControls();
                         MessageBox.Show("あなたの勝ちです！");
                         return;
                     }
@@ -365,6 +399,8 @@ namespace KCSharp
             if (move == KCSharp.Move.NONE) return;
             // 着手
             board.doMove(move);
+            turnCnt++;
+            record.Add(board);
 
             this.Invoke((Action)(() =>
             {
@@ -375,9 +411,9 @@ namespace KCSharp
                 if (board.isSquare(cpu))
                 {
                     winner = cpu;
-                    drawBoard(); // 盤面の再描画
-                    isStarted = false;
-                    updateControls("終了");
+                    gameStatus = GameStatus.FINISHED;
+                    drawBoard();
+                    updateControls();
                     MessageBox.Show("あなたの負けです！");
                     return;
                 }
@@ -401,6 +437,8 @@ namespace KCSharp
             if (move == KCSharp.Move.NONE) return;
             // 着手
             board.doMove(move);
+            turnCnt++;
+            record.Add(board);
 
             this.Invoke((Action)(() =>
             {
@@ -410,9 +448,9 @@ namespace KCSharp
                 if (board.isSquare(you))
                 {
                     winner = you;
-                    drawBoard(); // 盤面の再描画
-                    isStarted = false;
-                    updateControls("終了");
+                    gameStatus = GameStatus.FINISHED;
+                    drawBoard();
+                    updateControls();
                     MessageBox.Show("あなた(CPU2)の勝ちです！");
                     return;
                 }
@@ -442,6 +480,24 @@ namespace KCSharp
                 textGameNumber.Visible = false;
                 labelGameNumber.Visible = false;
             }
+        }
+
+        // 戻るボタン
+        private void buttonUndo_Click(object sender, EventArgs e)
+        {
+            if (turnCnt == 0) return;
+            turnCnt--;
+            board = record[turnCnt];
+            drawBoard();
+        }
+
+        // 進むボタン
+        private void buttonRedo_Click(object sender, EventArgs e)
+        {
+            if (turnCnt >= record.Count - 1) return;
+            turnCnt++;
+            board = record[turnCnt];
+            drawBoard();
         }
     }
 }
