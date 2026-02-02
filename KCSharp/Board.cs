@@ -162,7 +162,7 @@ namespace KCSharp
         }
 
         // 盤面を初期状態にリセットする
-        public void reset(InitialPosition type, Kifu black = null, Kifu white = null)
+        public void reset()
         {
             // 盤面をクリア
             blackStones = 0x0000000;
@@ -170,42 +170,20 @@ namespace KCSharp
             turn = 0;
             lastMoveB = Move.NONE;
             lastMoveW = Move.NONE;
+        }
+        public void reset(Kifu black, Kifu white)
+        {
+            reset();
 
             // 初期配置
-            switch (type)
+            for (int i = 0; i < 4; i++)
             {
-                // 10番勝負の初期配置
-                case InitialPosition.FIXED:
-                    // 盤面に石を配置
-                    for (int i = 0; i < 4; i++)
-                    {
-                        int bx = black.stones[i].x;
-                        int by = black.stones[i].y;
-                        setStone(bx, by, black.player);
-                        int wx = white.stones[i].x;
-                        int wy = white.stones[i].y;
-                        setStone(wx, wy, white.player);
-                    }
-                    break;
-
-                // ランダム配置
-                case InitialPosition.RANDOM:
-                    Random rand = new Random();
-                    for (int i = 0; i < 8; i++)
-                    {
-                        int x, y;
-                        do {
-                            x = rand.Next(SIZE);
-                            y = rand.Next(SIZE);
-                        } while (getStone(x, y) != NO_STONE);
-                        setStone(x, y, (i % 2 == 0) ? FIRST_MOVE : SECOND_MOVE);
-                    }
-                    break;
-
-                // 石無し
-                case InitialPosition.NONE:
-                default:
-                    break;
+                int bx = black.stones[i].x;
+                int by = black.stones[i].y;
+                setStone(bx, by, black.player);
+                int wx = white.stones[i].x;
+                int wy = white.stones[i].y;
+                setStone(wx, wy, white.player);
             }
         }
 

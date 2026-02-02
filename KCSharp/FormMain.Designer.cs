@@ -47,6 +47,7 @@
             buttonP = new Button();
             buttonNN = new Button();
             buttonN = new Button();
+            buttonChange = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBoard).BeginInit();
             SuspendLayout();
             // 
@@ -93,7 +94,7 @@
             // buttonStart
             // 
             buttonStart.Font = new Font("Yu Gothic UI", 16F);
-            buttonStart.Location = new Point(710, 294);
+            buttonStart.Location = new Point(710, 303);
             buttonStart.Name = "buttonStart";
             buttonStart.Size = new Size(182, 53);
             buttonStart.TabIndex = 5;
@@ -105,7 +106,7 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Yu Gothic UI", 16F);
-            label3.Location = new Point(544, 385);
+            label3.Location = new Point(544, 388);
             label3.Name = "label3";
             label3.Size = new Size(84, 45);
             label3.TabIndex = 6;
@@ -115,11 +116,12 @@
             // 
             textTurn.BackColor = SystemColors.Control;
             textTurn.Font = new Font("Yu Gothic UI", 16F);
-            textTurn.Location = new Point(710, 382);
+            textTurn.Location = new Point(710, 385);
             textTurn.Name = "textTurn";
             textTurn.ReadOnly = true;
             textTurn.Size = new Size(182, 50);
             textTurn.TabIndex = 7;
+            textTurn.TextAlign = HorizontalAlignment.Center;
             // 
             // comboGameType
             // 
@@ -252,11 +254,23 @@
             buttonN.UseVisualStyleBackColor = true;
             buttonN.Click += buttonN_Click;
             // 
+            // buttonChange
+            // 
+            buttonChange.Font = new Font("Yu Gothic UI", 16F);
+            buttonChange.Location = new Point(522, 303);
+            buttonChange.Name = "buttonChange";
+            buttonChange.Size = new Size(182, 53);
+            buttonChange.TabIndex = 21;
+            buttonChange.Text = "チェンジ";
+            buttonChange.UseVisualStyleBackColor = true;
+            buttonChange.Click += buttonChange_Click;
+            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(928, 544);
+            Controls.Add(buttonChange);
             Controls.Add(buttonNN);
             Controls.Add(buttonN);
             Controls.Add(buttonP);
@@ -306,5 +320,6 @@
         private Button buttonP;
         private Button buttonNN;
         private Button buttonN;
+        private Button buttonChange;
     }
 }

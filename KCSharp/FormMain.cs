@@ -23,12 +23,12 @@ namespace KCSharp
         // 状態
         enum GameStatus
         {
-            BEFORE_GAME, // 対局前
-            DURING_GAME, // 対局中
+            READY,       // 対局前
+            PLAYING,     // 対局中
             FINISHED,    // 終了
             RESIGNED     // 投了
         }
-        GameStatus gameStatus = GameStatus.BEFORE_GAME;
+        GameStatus gameStatus = GameStatus.READY;
         // 何手目か
         int turnCnt = 0;
         // 盤面履歴
@@ -51,6 +51,10 @@ namespace KCSharp
         // 初期局面の数
         const int initPosMax = 10;
 
+        // ランダム局面データ
+        Random rand = new Random();
+        Board randomPosition;
+
         // CPUの思考エンジン
         Engine cpuEngine;
 
@@ -58,12 +62,15 @@ namespace KCSharp
         public FormMain()
         {
             InitializeComponent();
+            buttonChange.Location = new Point(710, 218); // ボタン位置調整
 
-            // 初期曲面データの読み込み
+            // 初期局面データの読み込み
             if (initialPosition.load() == false)
             {
                 MessageBox.Show("初期局面データの読み込みに失敗しました。");
             }
+            // ランダム局面の生成
+            randomPosition = randomBoard();
 
             // ゲーム設定の初期値
             comboMove.SelectedIndex = 0;
@@ -77,6 +84,25 @@ namespace KCSharp
             selectedStone = Position.NONE;
             drawBoard();
             updateControls();
+        }
+
+        // ランダム盤面の生成
+        private Board randomBoard()
+        {
+            Board board = new Board();
+            board.reset();
+            for (int i = 0; i < 8; i++)
+            {
+                int x, y;
+                do
+                {
+                    x = rand.Next(Board.SIZE);
+                    y = rand.Next(Board.SIZE);
+                } while (board.getStone(x, y) != Board.NO_STONE);
+                board.setStone(
+                    x, y, (i % 2 == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE);
+            }
+            return board;
         }
 
         // 盤面の描画
@@ -189,11 +215,11 @@ namespace KCSharp
             // どちらが手番持ちかを表示
             switch (gameStatus)
             {
-                case GameStatus.BEFORE_GAME:
+                case GameStatus.READY:
                     textTurn.Text = "対局前";
                     textTurn.ForeColor = Color.Green;
                     break;
-                case GameStatus.DURING_GAME:
+                case GameStatus.PLAYING:
                     textTurn.Text = (board.turnHolder == you) ? "あなた" : "CPU";
                     textTurn.ForeColor = (board.turnHolder == you) ? Color.Red : Color.Blue;
                     break;
@@ -217,13 +243,17 @@ namespace KCSharp
         private void updateControls()
         {
             // 対局中か？
-            if (gameStatus == GameStatus.DURING_GAME)
+            if (gameStatus == GameStatus.PLAYING)
             {
                 buttonStart.Text = "投了する";
                 comboMove.Enabled = false;
                 comboLevel.Enabled = false;
                 comboGameType.Enabled = false;
                 textGameNumber.Enabled = false;
+                buttonPP.Enabled = false;
+                buttonP.Enabled = false;
+                buttonN.Enabled = false;
+                buttonNN.Enabled = false;
             }
             else
             {
@@ -232,6 +262,10 @@ namespace KCSharp
                 comboLevel.Enabled = true;
                 comboGameType.Enabled = true;
                 textGameNumber.Enabled = true;
+                buttonPP.Enabled = true;
+                buttonP.Enabled = true;
+                buttonN.Enabled = true;
+                buttonNN.Enabled = true;
             }
         }
 
@@ -245,13 +279,19 @@ namespace KCSharp
                 case 0:
                     Kifu black = initialPosition.black[initPosNo-1];
                     Kifu white = initialPosition.white[initPosNo-1];
-                    board.reset(Board.InitialPosition.FIXED, black, white);
+                    board.reset(black, white);
                     break;
                 // ランダム
                 case 1:
-                    board.reset(Board.InitialPosition.RANDOM);
+                    board = randomPosition;
                     break;
             }
+
+            gameStatus = GameStatus.READY;
+            winner = Board.NO_STONE;
+            selectedStone = Position.NONE;
+            turnCnt = 0;
+            record.Clear();
 
             drawBoard();
             updateControls();
@@ -260,8 +300,8 @@ namespace KCSharp
         // 対局開始/投了ボタン
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            // 投了する
-            if (gameStatus == GameStatus.DURING_GAME)
+            // 対局中 → 投了する
+            if (gameStatus == GameStatus.PLAYING)
             {
                 // CPUの手番だったら中断させる
                 if (board.turnHolder == cpu)
@@ -275,20 +315,14 @@ namespace KCSharp
             // 対局開始する
             else
             {
-                // 盤面の初期化
-                setInitialPosition();
-
                 // 先手/後手のチェック
                 you = (comboMove.SelectedIndex == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE;
                 cpu = (comboMove.SelectedIndex == 0) ? Board.SECOND_MOVE : Board.FIRST_MOVE;
-                winner = Board.NO_STONE;
 
-                selectedStone = Position.NONE;
-                turnCnt = 0;
-                record.Clear();
+                setInitialPosition();
                 record.Add(board);
 
-                gameStatus = GameStatus.DURING_GAME;
+                gameStatus = GameStatus.PLAYING;
                 drawBoard();
                 updateControls();
 
@@ -326,7 +360,7 @@ namespace KCSharp
         private void pictureBoard_MouseClick(object sender, MouseEventArgs e)
         {
             // 対局中かチェック
-            if (gameStatus != GameStatus.DURING_GAME)
+            if (gameStatus != GameStatus.PLAYING)
             {
                 return;
             }
@@ -472,6 +506,7 @@ namespace KCSharp
                 buttonP.Visible = true;
                 buttonN.Visible = true;
                 buttonNN.Visible = true;
+                buttonChange.Visible = false;
             }
             else
             {
@@ -481,6 +516,7 @@ namespace KCSharp
                 buttonP.Visible = false;
                 buttonN.Visible = false;
                 buttonNN.Visible = false;
+                buttonChange.Visible = true;
             }
             setInitialPosition();
         }
@@ -540,6 +576,13 @@ namespace KCSharp
             if (no > initPosMax) no = initPosMax;
             initPosNo = no;
             textGameNumber.Text = no.ToString();
+            setInitialPosition();
+        }
+
+        // ランダム盤面のチェンジボタン
+        private void buttonChange_Click(object sender, EventArgs e)
+        {
+            randomPosition = randomBoard();
             setInitialPosition();
         }
     }
