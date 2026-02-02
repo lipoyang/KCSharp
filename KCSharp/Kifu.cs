@@ -54,10 +54,18 @@ namespace KCSharp
     class InitialPosition
     {
         // 初期局面の棋譜ファイルパスと棋譜データ
-        private const string InitialPositionFilePath = "InitialPosition.csv";
-        private const int InitialPositionNum = 10;
-        public Kifu[] black = new Kifu[InitialPositionNum];
-        public Kifu[] white = new Kifu[InitialPositionNum];
+        private string InitialPositionFilePath;
+        private int InitialPositionNum;
+        public Kifu[] black;
+        public Kifu[] white;
+
+        public InitialPosition(string path, int max)
+        {
+            InitialPositionNum = max;
+            InitialPositionFilePath = path;
+            black = new Kifu[InitialPositionNum];
+            white = new Kifu[InitialPositionNum];
+        }
 
         // 初期局面のロード
         public bool load()

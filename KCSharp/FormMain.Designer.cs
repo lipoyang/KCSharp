@@ -128,7 +128,7 @@
             comboGameType.DropDownStyle = ComboBoxStyle.DropDownList;
             comboGameType.Font = new Font("Yu Gothic UI", 16F);
             comboGameType.FormattingEnabled = true;
-            comboGameType.Items.AddRange(new object[] { "10番勝負", "ランダム" });
+            comboGameType.Items.AddRange(new object[] { "96番勝負", "ランダム" });
             comboGameType.Location = new Point(710, 158);
             comboGameType.Name = "comboGameType";
             comboGameType.Size = new Size(182, 53);

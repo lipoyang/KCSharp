@@ -44,12 +44,13 @@ namespace KCSharp
         // 勝者
         int winner = Board.NO_STONE;
 
-        // 初期局面データ
-        InitialPosition initialPosition = new InitialPosition();
         // 初期局面番号
         int initPosNo = 1;
         // 初期局面の数
-        const int initPosMax = 10;
+        const int initPosMax = 96;
+        // 初期局面データ
+        InitialPosition initialPosition = 
+            new InitialPosition("InitialPosition.csv", initPosMax);
 
         // ランダム局面データ
         Random rand = new Random();
@@ -589,8 +590,8 @@ namespace KCSharp
         // 初期局面番号 << ボタン
         private void buttonPP_Click(object sender, EventArgs e)
         {
-            int no = initPosNo - 3;
-            if (no < 1) no = 1;
+            int no = initPosNo - 10;
+            if (no < 1) return;
             initPosNo = no;
             textGameNumber.Text = no.ToString();
             setInitialPosition();
@@ -600,7 +601,7 @@ namespace KCSharp
         private void buttonP_Click(object sender, EventArgs e)
         {
             int no = initPosNo - 1;
-            if (no < 1) no = 1;
+            if (no < 1) return;
             initPosNo = no;
             textGameNumber.Text = no.ToString();
             setInitialPosition();
@@ -610,7 +611,7 @@ namespace KCSharp
         private void buttonN_Click(object sender, EventArgs e)
         {
             int no = initPosNo + 1;
-            if (no > initPosMax) no = initPosMax;
+            if (no > initPosMax) return;
             initPosNo = no;
             textGameNumber.Text = no.ToString();
             setInitialPosition();
@@ -619,8 +620,8 @@ namespace KCSharp
         // 初期局面番号 >> ボタン
         private void buttonNN_Click(object sender, EventArgs e)
         {
-            int no = initPosNo + 3;
-            if (no > initPosMax) no = initPosMax;
+            int no = initPosNo + 10;
+            if (no > initPosMax) return;
             initPosNo = no;
             textGameNumber.Text = no.ToString();
             setInitialPosition();
