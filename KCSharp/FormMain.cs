@@ -21,7 +21,8 @@ namespace KCSharp
         // 盤面データ
         Board board = new Board();
         // 状態
-        enum GameStatus{
+        enum GameStatus
+        {
             BEFORE_GAME, // 対局前
             DURING_GAME, // 対局中
             FINISHED,    // 終了
@@ -45,6 +46,10 @@ namespace KCSharp
 
         // 初期局面データ
         InitialPosition initialPosition = new InitialPosition();
+        // 初期局面番号
+        int initPosNo = 1;
+        // 初期局面の数
+        const int initPosMax = 10;
 
         // CPUの思考エンジン
         Engine cpuEngine;
@@ -55,7 +60,7 @@ namespace KCSharp
             InitializeComponent();
 
             // 初期曲面データの読み込み
-            if(initialPosition.load() == false)
+            if (initialPosition.load() == false)
             {
                 MessageBox.Show("初期局面データの読み込みに失敗しました。");
             }
@@ -63,11 +68,12 @@ namespace KCSharp
             // ゲーム設定の初期値
             comboMove.SelectedIndex = 0;
             comboGameType.SelectedIndex = 0;
-            textDepth.Text = "7";
+            initPosNo = 1;
             textGameNumber.Text = "1";
+            comboLevel.SelectedIndex = 6; // レベル7
 
             // 盤面の初期化
-            board.reset(Board.InitialPosition.NONE); // 初期配置はしない
+            setInitialPosition();
             selectedStone = Position.NONE;
             drawBoard();
             updateControls();
@@ -181,7 +187,7 @@ namespace KCSharp
             pictureBoard.Image = canvas;
 
             // どちらが手番持ちかを表示
-            switch(gameStatus)
+            switch (gameStatus)
             {
                 case GameStatus.BEFORE_GAME:
                     textTurn.Text = "対局前";
@@ -200,7 +206,7 @@ namespace KCSharp
                     textTurn.ForeColor = Color.Green;
                     break;
             }
-            
+
             // 何手目かを表示
             textTurnNum.Text = turnCnt.ToString();
             buttonUndo.Enabled = (turnCnt > 0);
@@ -215,7 +221,7 @@ namespace KCSharp
             {
                 buttonStart.Text = "投了する";
                 comboMove.Enabled = false;
-                textDepth.Enabled = false;
+                comboLevel.Enabled = false;
                 comboGameType.Enabled = false;
                 textGameNumber.Enabled = false;
             }
@@ -223,10 +229,32 @@ namespace KCSharp
             {
                 buttonStart.Text = "対局開始";
                 comboMove.Enabled = true;
-                textDepth.Enabled = true;
+                comboLevel.Enabled = true;
                 comboGameType.Enabled = true;
                 textGameNumber.Enabled = true;
             }
+        }
+
+        // 初期配置
+        private void setInitialPosition()
+        {
+            // 盤面のリセット
+            switch (comboGameType.SelectedIndex)
+            {
+                // 10番勝負
+                case 0:
+                    Kifu black = initialPosition.black[initPosNo-1];
+                    Kifu white = initialPosition.white[initPosNo-1];
+                    board.reset(Board.InitialPosition.FIXED, black, white);
+                    break;
+                // ランダム
+                case 1:
+                    board.reset(Board.InitialPosition.RANDOM);
+                    break;
+            }
+
+            drawBoard();
+            updateControls();
         }
 
         // 対局開始/投了ボタン
@@ -236,7 +264,7 @@ namespace KCSharp
             if (gameStatus == GameStatus.DURING_GAME)
             {
                 // CPUの手番だったら中断させる
-                if(board.turnHolder == cpu)
+                if (board.turnHolder == cpu)
                 {
                     cpuEngine.cancel();
                 }
@@ -247,47 +275,14 @@ namespace KCSharp
             // 対局開始する
             else
             {
-                // レベル(先読み深さ)の設定をチェック
-                int depth;
-                try
-                {
-                    depth = int.Parse(textDepth.Text);
-                    if (depth < 1) throw new Exception();
-                }
-                catch
-                {
-                    MessageBox.Show("読みの深さは1以上の整数を設定してください。");
-                    return;
-                }
+                // 盤面の初期化
+                setInitialPosition();
+
                 // 先手/後手のチェック
                 you = (comboMove.SelectedIndex == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE;
                 cpu = (comboMove.SelectedIndex == 0) ? Board.SECOND_MOVE : Board.FIRST_MOVE;
                 winner = Board.NO_STONE;
 
-                // 盤面のリセット
-                switch(comboGameType.SelectedIndex)
-                {
-                    // 10番勝負
-                    case 0:
-                        int gameNumber;
-                        try {
-                            gameNumber = int.Parse(textGameNumber.Text);
-                            if (gameNumber < 1 || gameNumber > 10) throw new Exception();
-                        } catch {
-                            MessageBox.Show("ゲーム番号は1～10の整数を設定してください。");
-                            return;
-                        }
-                        gameNumber--; // 0オリジンに変換
-                        Kifu black = initialPosition.black[gameNumber];
-                        Kifu white = initialPosition.white[gameNumber];
-                        board.reset(Board.InitialPosition.FIXED, black, white);
-                        break;
-
-                    // ランダム
-                    case 1:
-                        board.reset(Board.InitialPosition.RANDOM);
-                        break;
-                }
                 selectedStone = Position.NONE;
                 turnCnt = 0;
                 record.Clear();
@@ -298,8 +293,9 @@ namespace KCSharp
                 updateControls();
 
                 // CPUの思考エンジンを生成
-                cpuEngine = new Engine3(depth, cpu);
-                if(isDebug)
+                int cpuLevel = comboLevel.SelectedIndex + 1; // レベル1～7
+                cpuEngine = new Engine3(cpuLevel, cpu);
+                if (isDebug)
                 {
                     // デバッグ用CPU2エンジン生成
                     cpuEngine = new Engine2(5, cpu);
@@ -465,21 +461,28 @@ namespace KCSharp
             }));
         }
 
-        // 初期配置タイプの変更
+        // 初期局面タイプの変更
         private void comboGameType_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboGameType.SelectedIndex == 0)
             {
                 // 10番勝負
                 textGameNumber.Visible = true;
-                labelGameNumber.Visible = true;
+                buttonPP.Visible = true;
+                buttonP.Visible = true;
+                buttonN.Visible = true;
+                buttonNN.Visible = true;
             }
             else
             {
                 // ランダム
                 textGameNumber.Visible = false;
-                labelGameNumber.Visible = false;
+                buttonPP.Visible = false;
+                buttonP.Visible = false;
+                buttonN.Visible = false;
+                buttonNN.Visible = false;
             }
+            setInitialPosition();
         }
 
         // 戻るボタン
@@ -498,6 +501,46 @@ namespace KCSharp
             turnCnt++;
             board = record[turnCnt];
             drawBoard();
+        }
+
+        // 初期局面番号 << ボタン
+        private void buttonPP_Click(object sender, EventArgs e)
+        {
+            int no = initPosNo - 3;
+            if (no < 1) no = 1;
+            initPosNo = no;
+            textGameNumber.Text = no.ToString();
+            setInitialPosition();
+        }
+
+        // 初期局面番号 < ボタン
+        private void buttonP_Click(object sender, EventArgs e)
+        {
+            int no = initPosNo - 1;
+            if (no < 1) no = 1;
+            initPosNo = no;
+            textGameNumber.Text = no.ToString();
+            setInitialPosition();
+        }
+
+        // 初期局面番号 > ボタン
+        private void buttonN_Click(object sender, EventArgs e)
+        {
+            int no = initPosNo + 1;
+            if (no > initPosMax) no = initPosMax;
+            initPosNo = no;
+            textGameNumber.Text = no.ToString();
+            setInitialPosition();
+        }
+
+        // 初期局面番号 >> ボタン
+        private void buttonNN_Click(object sender, EventArgs e)
+        {
+            int no = initPosNo + 3;
+            if (no > initPosMax) no = initPosMax;
+            initPosNo = no;
+            textGameNumber.Text = no.ToString();
+            setInitialPosition();
         }
     }
 }

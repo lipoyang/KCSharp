@@ -32,18 +32,21 @@
             label1 = new Label();
             comboMove = new ComboBox();
             label2 = new Label();
-            textDepth = new TextBox();
             buttonStart = new Button();
             label3 = new Label();
             textTurn = new TextBox();
             comboGameType = new ComboBox();
             label4 = new Label();
             textGameNumber = new TextBox();
-            labelGameNumber = new Label();
             buttonUndo = new Button();
             buttonRedo = new Button();
             textTurnNum = new TextBox();
             label5 = new Label();
+            comboLevel = new ComboBox();
+            buttonPP = new Button();
+            buttonP = new Button();
+            buttonNN = new Button();
+            buttonN = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBoard).BeginInit();
             SuspendLayout();
             // 
@@ -81,19 +84,11 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Yu Gothic UI", 16F);
-            label2.Location = new Point(544, 213);
+            label2.Location = new Point(544, 102);
             label2.Name = "label2";
             label2.Size = new Size(96, 45);
             label2.TabIndex = 3;
             label2.Text = "レベル";
-            // 
-            // textDepth
-            // 
-            textDepth.Font = new Font("Yu Gothic UI", 16F);
-            textDepth.Location = new Point(710, 214);
-            textDepth.Name = "textDepth";
-            textDepth.Size = new Size(182, 50);
-            textDepth.TabIndex = 4;
             // 
             // buttonStart
             // 
@@ -132,7 +127,7 @@
             comboGameType.Font = new Font("Yu Gothic UI", 16F);
             comboGameType.FormattingEnabled = true;
             comboGameType.Items.AddRange(new object[] { "10番勝負", "ランダム" });
-            comboGameType.Location = new Point(710, 99);
+            comboGameType.Location = new Point(710, 158);
             comboGameType.Name = "comboGameType";
             comboGameType.Size = new Size(182, 53);
             comboGameType.TabIndex = 8;
@@ -142,7 +137,7 @@
             // 
             label4.AutoSize = true;
             label4.Font = new Font("Yu Gothic UI", 16F);
-            label4.Location = new Point(544, 99);
+            label4.Location = new Point(544, 161);
             label4.Name = "label4";
             label4.Size = new Size(84, 45);
             label4.TabIndex = 9;
@@ -151,20 +146,12 @@
             // textGameNumber
             // 
             textGameNumber.Font = new Font("Yu Gothic UI", 16F);
-            textGameNumber.Location = new Point(710, 158);
+            textGameNumber.Location = new Point(672, 217);
             textGameNumber.Name = "textGameNumber";
-            textGameNumber.Size = new Size(182, 50);
+            textGameNumber.ReadOnly = true;
+            textGameNumber.Size = new Size(102, 50);
             textGameNumber.TabIndex = 11;
-            // 
-            // labelGameNumber
-            // 
-            labelGameNumber.AutoSize = true;
-            labelGameNumber.Font = new Font("Yu Gothic UI", 16F);
-            labelGameNumber.Location = new Point(628, 161);
-            labelGameNumber.Name = "labelGameNumber";
-            labelGameNumber.Size = new Size(63, 45);
-            labelGameNumber.TabIndex = 10;
-            labelGameNumber.Text = "No";
+            textGameNumber.TextAlign = HorizontalAlignment.Center;
             // 
             // buttonUndo
             // 
@@ -210,23 +197,81 @@
             label5.TabIndex = 15;
             label5.Text = "手目";
             // 
+            // comboLevel
+            // 
+            comboLevel.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboLevel.Font = new Font("Yu Gothic UI", 16F);
+            comboLevel.FormattingEnabled = true;
+            comboLevel.Items.AddRange(new object[] { "1", "2", "3", "4", "5", "6", "7" });
+            comboLevel.Location = new Point(710, 99);
+            comboLevel.Name = "comboLevel";
+            comboLevel.Size = new Size(182, 53);
+            comboLevel.TabIndex = 16;
+            // 
+            // buttonPP
+            // 
+            buttonPP.Font = new Font("Yu Gothic UI", 14F);
+            buttonPP.Location = new Point(554, 218);
+            buttonPP.Name = "buttonPP";
+            buttonPP.Size = new Size(53, 53);
+            buttonPP.TabIndex = 17;
+            buttonPP.Text = "≪";
+            buttonPP.UseVisualStyleBackColor = true;
+            buttonPP.Click += buttonPP_Click;
+            // 
+            // buttonP
+            // 
+            buttonP.Font = new Font("Yu Gothic UI", 14F);
+            buttonP.Location = new Point(613, 218);
+            buttonP.Name = "buttonP";
+            buttonP.Size = new Size(53, 53);
+            buttonP.TabIndex = 18;
+            buttonP.Text = "＜";
+            buttonP.UseVisualStyleBackColor = true;
+            buttonP.Click += buttonP_Click;
+            // 
+            // buttonNN
+            // 
+            buttonNN.Font = new Font("Yu Gothic UI", 14F);
+            buttonNN.Location = new Point(839, 218);
+            buttonNN.Name = "buttonNN";
+            buttonNN.Size = new Size(53, 53);
+            buttonNN.TabIndex = 20;
+            buttonNN.Text = "≫";
+            buttonNN.UseVisualStyleBackColor = true;
+            buttonNN.Click += buttonNN_Click;
+            // 
+            // buttonN
+            // 
+            buttonN.Font = new Font("Yu Gothic UI", 14F);
+            buttonN.Location = new Point(780, 218);
+            buttonN.Name = "buttonN";
+            buttonN.Size = new Size(53, 53);
+            buttonN.TabIndex = 19;
+            buttonN.Text = "＞";
+            buttonN.UseVisualStyleBackColor = true;
+            buttonN.Click += buttonN_Click;
+            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(928, 544);
+            Controls.Add(buttonNN);
+            Controls.Add(buttonN);
+            Controls.Add(buttonP);
+            Controls.Add(buttonPP);
+            Controls.Add(comboLevel);
             Controls.Add(label5);
             Controls.Add(textTurnNum);
             Controls.Add(buttonRedo);
             Controls.Add(buttonUndo);
             Controls.Add(textGameNumber);
-            Controls.Add(labelGameNumber);
             Controls.Add(label4);
             Controls.Add(comboGameType);
             Controls.Add(textTurn);
             Controls.Add(label3);
             Controls.Add(buttonStart);
-            Controls.Add(textDepth);
             Controls.Add(label2);
             Controls.Add(comboMove);
             Controls.Add(label1);
@@ -246,17 +291,20 @@
         private Label label1;
         private ComboBox comboMove;
         private Label label2;
-        private TextBox textDepth;
         private Button buttonStart;
         private Label label3;
         private TextBox textTurn;
         private ComboBox comboGameType;
         private Label label4;
         private TextBox textGameNumber;
-        private Label labelGameNumber;
         private Button buttonUndo;
         private Button buttonRedo;
         private TextBox textTurnNum;
         private Label label5;
+        private ComboBox comboLevel;
+        private Button buttonPP;
+        private Button buttonP;
+        private Button buttonNN;
+        private Button buttonN;
     }
 }
