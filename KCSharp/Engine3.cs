@@ -6,19 +6,21 @@ namespace KCSharp
     // 思考エンジン 3号（探索：アルファベータ法、評価：速く詰むか+詰まないなら自乗形四率(SKR) ）
     class Engine3 : Engine
     {
-        // デバッグ用
+        /********** デバッグ用 **********/
         const bool debugLog = false;
 
-        // コンストラクタ (読みの深さと先手/後手を指定)
-        public Engine3(int depth, int order) : base(depth, order) { }
-
-        // 乱数生成器
-        private Random rand = new Random();
-
+        /********** 変数 **********/
         // 次の手の候補用バッファ (1局面最大32通り×最大探索深さ)
         private const int MAX_MOVE = 32;
         private const int MAX_DEPTH = 10;
         private Move[] moveBuffer = new Move[MAX_MOVE * MAX_DEPTH];
+
+        // 乱数生成器
+        private Random rand = new Random();
+
+        /********** メソッド **********/
+        // コンストラクタ (読みの深さと先手/後手を指定)
+        public Engine3(int depth, int order) : base(depth, order) { }
 
         // 次の手を取得する
         public override Move getNextMove(Board board)
@@ -43,7 +45,7 @@ namespace KCSharp
         {
             // 石の座標を取得
             const int SIZE = Board.SIZE;
-            UInt32 stones = (player == Board.FIRST_MOVE) ? board.blackStones : board.whiteStones;
+            UInt32 stones = (player == Board.BLACK) ? board.blackStones : board.whiteStones;
             int idx = 0;
             while (stones != 0 && idx < 4)
             {
@@ -83,20 +85,19 @@ namespace KCSharp
             return skr;
         }
 
-
         // 評価関数
         public int evalFunction(Board board)
         {
             // 先手の自乗形四率 * 重み + ランダム
-            int eval_black = getSKR(board, Board.FIRST_MOVE) + rand.Next(10);
+            int eval_black = getSKR(board, Board.BLACK) + rand.Next(10);
             // 後手の自乗形四率 * 重み + ランダム
-            int eval_white = getSKR(board, Board.SECOND_MOVE) + rand.Next(10);
+            int eval_white = getSKR(board, Board.WHITE) + rand.Next(10);
 
             // 評価値
             int eval = eval_black - eval_white;
             if (eval >=  100) eval =  99;
             if (eval <= -100) eval = -99;
-            if (myOrder == Board.SECOND_MOVE)
+            if (myOrder == Board.WHITE)
             {
                 eval = -eval;
             }

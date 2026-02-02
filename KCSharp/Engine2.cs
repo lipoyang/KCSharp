@@ -43,7 +43,7 @@ namespace KCSharp
         {
             // 石の座標を取得
             const int SIZE = Board.SIZE;
-            UInt32 stones = (player == Board.FIRST_MOVE) ? board.blackStones : board.whiteStones;
+            UInt32 stones = (player == Board.BLACK) ? board.blackStones : board.whiteStones;
             int idx = 0;
             while (stones != 0 && idx < 4)
             {
@@ -88,15 +88,15 @@ namespace KCSharp
         public int evalFunction(Board board)
         {
             // 先手の自乗形四率 * 重み + ランダム
-            int eval_black = getSKR(board, Board.FIRST_MOVE) + rand.Next(10);
+            int eval_black = getSKR(board, Board.BLACK) + rand.Next(10);
             // 後手の自乗形四率 * 重み + ランダム
-            int eval_white = getSKR(board, Board.SECOND_MOVE) + rand.Next(10);
+            int eval_white = getSKR(board, Board.WHITE) + rand.Next(10);
 
             // 評価値
             int eval = eval_black - eval_white;
             if (eval >=  100) eval =  99;
             if (eval <= -100) eval = -99;
-            if (myOrder == Board.SECOND_MOVE)
+            if (myOrder == Board.WHITE)
             {
                 eval = -eval;
             }

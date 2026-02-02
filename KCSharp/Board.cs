@@ -74,91 +74,43 @@ namespace KCSharp
     // 盤面データ
     struct Board
     {
-        // 先手
-        public const int FIRST_MOVE = 0;
-        // 後手
-        public const int SECOND_MOVE = 1;
-        // 石が無い
-        public const int NO_STONE = -1;
+        /**********  定数  **********/
+        // マスの値
+        public const int BLACK = 0;     // 先手
+        public const int WHITE = 1;     // 後手
+        public const int NO_STONE = -1; // 石が無い
         // 盤のサイズ (5×5マス)
         public const int SIZE = 5;
 
-        // 盤面種別
-        public enum InitialPosition
-        {
-            NONE   = -1,    // 石無し
-            FIXED  = 0,     // 10番勝負
-            RANDOM = 1      // ランダム配置
-        }
-
+        /**********  変数  **********/
         // 最後の着手
         public Move lastMoveB;
         public Move lastMoveW;
+        // 盤面
+        public UInt32 blackStones; // (x,y) -> bit位置: (x + y * SIZE)
+        public UInt32 whiteStones; // (x,y) -> bit位置: (x + y * SIZE)
+        // 対局開始からの手順数
+        public int turn;
+
+        /**********  メソッド  **********/
+        // 最後の着手を取得
         public Move getLastMove(int player)
         {
-            return (player == FIRST_MOVE) ? lastMoveB : lastMoveW;
+            return (player == BLACK) ? lastMoveB : lastMoveW;
         }
+        // 最後の着手を設定
         public void setLastMove(int player, Move move)
         {
-            if (player == FIRST_MOVE) {
+            if (player == BLACK) {
                 lastMoveB = move;
             } else {
                 lastMoveW = move;
             }
         }
-
-        // 盤面
-        public UInt32 blackStones; // (x,y) -> bit位置: (x + y * SIZE)
-        public UInt32 whiteStones; // (x,y) -> bit位置: (x + y * SIZE)
-
-        // 指定された場所の石を取得する
-        public int getStone(int x, int y)
+        // 手番持ちのプレイヤーを取得（先手 or 後手）
+        public int turnHolder
         {
-            UInt32 mask = 1u << (x + y * SIZE);
-
-            if ((blackStones & mask) != 0) return FIRST_MOVE;
-            if ((whiteStones & mask) != 0) return SECOND_MOVE;
-            return NO_STONE;
-        }
-
-        // 指定された場所の石を設定する
-        public void setStone(int x, int y, int owner)
-        {
-            UInt32 mask = 1u << (x + y * SIZE);
-
-            if (owner == FIRST_MOVE)
-            {
-                blackStones |= mask;
-            } else {
-                whiteStones |= mask;
-            }
-        }
-
-        // 指定された場所の石を取り除く
-        public void clearStone(int x, int y)
-        {
-            UInt32 mask = 1u << (x + y * SIZE);
-
-            blackStones &= ~mask;
-            whiteStones &= ~mask;
-        }
-
-        // 対局開始からの手順数
-        public int turn;
-
-        // 手番持ちのプレイヤー（先手 or 後手）
-        public int turnHolder {
-            get {
-                return turn % 2;
-            }
-        }
-
-        // 盤面の範囲内か判定する
-        private static bool isInBoard(int x, int y)
-        {
-            if ((x < 0) || (x >= SIZE)) return false;
-            if ((y < 0) || (y >= SIZE)) return false;
-            return true;
+            get { return turn % 2; }
         }
 
         // 盤面を初期状態にリセットする
@@ -185,6 +137,46 @@ namespace KCSharp
                 int wy = white.stones[i].y;
                 setStone(wx, wy, white.player);
             }
+        }
+
+        // 指定された場所の石を取得する
+        public int getStone(int x, int y)
+        {
+            UInt32 mask = 1u << (x + y * SIZE);
+
+            if ((blackStones & mask) != 0) return BLACK;
+            if ((whiteStones & mask) != 0) return WHITE;
+            return NO_STONE;
+        }
+
+        // 指定された場所の石を設定する
+        public void setStone(int x, int y, int owner)
+        {
+            UInt32 mask = 1u << (x + y * SIZE);
+
+            if (owner == BLACK)
+            {
+                blackStones |= mask;
+            } else {
+                whiteStones |= mask;
+            }
+        }
+
+        // 指定された場所の石を取り除く
+        public void clearStone(int x, int y)
+        {
+            UInt32 mask = 1u << (x + y * SIZE);
+
+            blackStones &= ~mask;
+            whiteStones &= ~mask;
+        }
+
+        // 盤面の範囲内か判定する
+        private static bool isInBoard(int x, int y)
+        {
+            if ((x < 0) || (x >= SIZE)) return false;
+            if ((y < 0) || (y >= SIZE)) return false;
+            return true;
         }
 
         // そこに自分の石があるか判定する
@@ -249,7 +241,7 @@ namespace KCSharp
         // 正方形か判定する
         public bool isSquare(int player)
         {
-            UInt32 stones = (player == FIRST_MOVE) ? blackStones : whiteStones;
+            UInt32 stones = (player == BLACK) ? blackStones : whiteStones;
 
             // 端四判定
             if (stones == 0x1100011) {
@@ -328,7 +320,7 @@ namespace KCSharp
         public int enumNextMoves(Span<Move> nextMoves)
         {
             int moveCount = 0;
-            UInt32 stones = (turnHolder == FIRST_MOVE) ? blackStones : whiteStones;
+            UInt32 stones = (turnHolder == BLACK) ? blackStones : whiteStones;
             Move urochoro = getLastMove(turnHolder).invert(); // うろちょろ禁止着手
 
             // 盤面から有効な着手を探す

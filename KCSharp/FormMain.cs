@@ -4,10 +4,11 @@ namespace KCSharp
 {
     public partial class FormMain : Form
     {
-        // デバッグ用
+        /********** デバッグ用 **********/
         const bool isDebug = false; // trueならCPU対CPU
         Engine cpu2Engine;         // CPU2の思考エンジン
 
+        /********** 定数 **********/
         // 升目の幅
         const int BOX_WIDTH = 100;
         // 石の直径
@@ -18,9 +19,16 @@ namespace KCSharp
         Pen arrowPen = new Pen(Color.Black, 4);
         AdjustableArrowCap arrowCap = new AdjustableArrowCap(6, 6);
 
+        /********** 変数 **********/
+        // CPUの思考エンジン
+        Engine cpuEngine;
+
         // 盤面データ
         Board board = new Board();
-        // 状態
+        // 盤面履歴
+        List<Board> record = new List<Board>();
+
+        // 対局の状態
         enum GameStatus
         {
             READY,       // 対局前
@@ -31,16 +39,15 @@ namespace KCSharp
         GameStatus gameStatus = GameStatus.READY;
         // 何手目か
         int turnCnt = 0;
-        // 盤面履歴
-        List<Board> record = new List<Board>();
-
         // 選択中の石の位置
         Position selectedStone = Position.NONE;
+        // 大パンチ位置データ
+        Board daiPunch;
 
         // プレイヤーの先手/後手
-        int you = Board.FIRST_MOVE;
+        int you = Board.BLACK;
         // CPUの先手/後手
-        int cpu = Board.SECOND_MOVE;
+        int cpu = Board.WHITE;
         // 勝者
         int winner = Board.NO_STONE;
 
@@ -56,13 +63,8 @@ namespace KCSharp
         Random rand = new Random();
         Board randomPosition;
 
-        // 大パンチ位置データ
-        Board daiPunch;
-
-        // CPUの思考エンジン
-        Engine cpuEngine;
-
-        // 初期化
+        /********** メソッド **********/
+        #region コンストラクタ
         public FormMain()
         {
             InitializeComponent();
@@ -85,11 +87,10 @@ namespace KCSharp
 
             // 盤面の初期化
             setInitialPosition();
-            selectedStone = Position.NONE;
-            drawBoard();
-            updateControls();
         }
+        #endregion
 
+        #region 一般メソッド
         // ランダム盤面の生成
         private Board randomBoard()
         {
@@ -104,7 +105,7 @@ namespace KCSharp
                     y = rand.Next(Board.SIZE);
                 } while (board.getStone(x, y) != Board.NO_STONE);
                 board.setStone(
-                    x, y, (i % 2 == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE);
+                    x, y, (i % 2 == 0) ? Board.BLACK : Board.WHITE);
             }
             return board;
         }
@@ -205,7 +206,7 @@ namespace KCSharp
                         {
                             int px = x * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
                             int py = y * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
-                            Brush brush = (punch == Board.FIRST_MOVE) ? Brushes.Black : Brushes.White;
+                            Brush brush = (punch == Board.BLACK) ? Brushes.Black : Brushes.White;
                             g.FillEllipse(brush, px, py, AVEILABLE_MARK_SIZE, AVEILABLE_MARK_SIZE);
                         }
                     }
@@ -235,14 +236,14 @@ namespace KCSharp
                     }
 
                     // 先手の石（黒）
-                    if (board.getStone(x, y) == Board.FIRST_MOVE)
+                    if (board.getStone(x, y) == Board.BLACK)
                     {
                         int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         int py = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         g.FillEllipse(Brushes.Black, px, py, STONE_SIZE, STONE_SIZE);
                     }
                     // 後手の石（白）
-                    else if (board.getStone(x, y) == Board.SECOND_MOVE)
+                    else if (board.getStone(x, y) == Board.WHITE)
                     {
                         int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                         int py = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
@@ -339,7 +340,88 @@ namespace KCSharp
             drawBoard();
             updateControls();
         }
+        #endregion
 
+        #region タスク関数
+        // CPUの手番タスク関数
+        void taskCpuTurn()
+        {
+            // 次の着手を計算
+            Move move = cpuEngine.getNextMove(board);
+            // 中断判定(投了)
+            if (move == KCSharp.Move.NONE) return;
+            // 着手
+            board.doMove(move);
+            turnCnt++;
+            record.Add(board);
+            checkDaiPunch();
+
+            this.Invoke((Action)(() =>
+            {
+                // 盤面の描画
+                drawBoard();
+
+                // 勝利チェック
+                if (board.isSquare(cpu))
+                {
+                    winner = cpu;
+                    gameStatus = GameStatus.FINISHED;
+                    drawBoard();
+                    updateControls();
+                    MessageBox.Show("あなたの負けです！");
+                    return;
+                }
+                else if (isDebug)
+                {
+                    // あなたの代わりにデバッグ用CPU2の手番タスク
+                    Task.Run(() =>
+                    {
+                        taskCpu2Turn();
+                    });
+                }
+            }));
+        }
+
+        // あなたの代わりのCPU2の手番タスク関数 (デバッグ用)
+        void taskCpu2Turn()
+        {
+            // 次の手を考える
+            Move move = cpu2Engine.getNextMove(board);
+            // 中断判定(投了)
+            if (move == KCSharp.Move.NONE) return;
+            // 着手
+            board.doMove(move);
+            turnCnt++;
+            record.Add(board);
+            checkDaiPunch();
+
+            this.Invoke((Action)(() =>
+            {
+                // 盤面の描画
+                drawBoard();
+                // 勝利チェック
+                if (board.isSquare(you))
+                {
+                    winner = you;
+                    gameStatus = GameStatus.FINISHED;
+                    drawBoard();
+                    updateControls();
+                    MessageBox.Show("あなた(CPU2)の勝ちです！");
+                    return;
+                }
+                else if (isDebug)
+                {
+                    // CPU1の手番タスク
+                    Task.Run(() =>
+                    {
+                        taskCpuTurn();
+                    });
+                }
+            }));
+        }
+        #endregion
+
+        #region イベントハンドラ
         // 対局開始/投了ボタン
         private void buttonStart_Click(object sender, EventArgs e)
         {
@@ -359,8 +441,8 @@ namespace KCSharp
             else
             {
                 // 先手/後手のチェック
-                you = (comboMove.SelectedIndex == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE;
-                cpu = (comboMove.SelectedIndex == 0) ? Board.SECOND_MOVE : Board.FIRST_MOVE;
+                you = (comboMove.SelectedIndex == 0) ? Board.BLACK : Board.WHITE;
+                cpu = (comboMove.SelectedIndex == 0) ? Board.WHITE : Board.BLACK;
 
                 setInitialPosition();
                 record.Add(board);
@@ -380,7 +462,7 @@ namespace KCSharp
                 }
 
                 // CPUが先手の場合
-                if (cpu == Board.FIRST_MOVE)
+                if (cpu == Board.BLACK)
                 {
                     // CPUの手番タスク
                     Task.Run(() =>
@@ -462,83 +544,6 @@ namespace KCSharp
                     });
                 }
             }
-        }
-
-        // CPUの手番タスク関数
-        void taskCpuTurn()
-        {
-            // 次の着手を計算
-            Move move = cpuEngine.getNextMove(board);
-            // 中断判定(投了)
-            if (move == KCSharp.Move.NONE) return;
-            // 着手
-            board.doMove(move);
-            turnCnt++;
-            record.Add(board);
-            checkDaiPunch();
-
-            this.Invoke((Action)(() =>
-            {
-                // 盤面の描画
-                drawBoard();
-
-                // 勝利チェック
-                if (board.isSquare(cpu))
-                {
-                    winner = cpu;
-                    gameStatus = GameStatus.FINISHED;
-                    drawBoard();
-                    updateControls();
-                    MessageBox.Show("あなたの負けです！");
-                    return;
-                }
-                else if (isDebug)
-                {
-                    // あなたの代わりにデバッグ用CPU2の手番タスク
-                    Task.Run(() =>
-                    {
-                        taskCpu2Turn();
-                    });
-                }
-            }));
-        }
-
-        // あなたの代わりのCPU2の手番タスク関数 (デバッグ用)
-        void taskCpu2Turn()
-        {
-            // 次の手を考える
-            Move move = cpu2Engine.getNextMove(board);
-            // 中断判定(投了)
-            if (move == KCSharp.Move.NONE) return;
-            // 着手
-            board.doMove(move);
-            turnCnt++;
-            record.Add(board);
-            checkDaiPunch();
-
-            this.Invoke((Action)(() =>
-            {
-                // 盤面の描画
-                drawBoard();
-                // 勝利チェック
-                if (board.isSquare(you))
-                {
-                    winner = you;
-                    gameStatus = GameStatus.FINISHED;
-                    drawBoard();
-                    updateControls();
-                    MessageBox.Show("あなた(CPU2)の勝ちです！");
-                    return;
-                }
-                else if (isDebug)
-                {
-                    // CPU1の手番タスク
-                    Task.Run(() =>
-                    {
-                        taskCpuTurn();
-                    });
-                }
-            }));
         }
 
         // 初期局面タイプの変更
@@ -633,5 +638,6 @@ namespace KCSharp
             randomPosition = randomBoard();
             setInitialPosition();
         }
+        #endregion
     }
 }
