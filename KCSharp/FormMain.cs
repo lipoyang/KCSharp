@@ -55,6 +55,9 @@ namespace KCSharp
         Random rand = new Random();
         Board randomPosition;
 
+        // 大パンチ位置データ
+        Board daiPunch;
+
         // CPUの思考エンジン
         Engine cpuEngine;
 
@@ -103,6 +106,32 @@ namespace KCSharp
                     x, y, (i % 2 == 0) ? Board.FIRST_MOVE : Board.SECOND_MOVE);
             }
             return board;
+        }
+
+        // 大パンチ位置チェック
+        private void checkDaiPunch()
+        {
+            daiPunch.reset();
+
+            Board _board = board;
+            for(int player = 0; player < 2; player++)
+            {
+                _board.turn = player;
+                Move[] moves = new Move[32];
+                Span<Move> _moves = new Span<Move>(moves, 0, 32);
+                int cnt = _board.enumNextMoves(moves);
+                for (int i = 0; i < cnt; i++)
+                {
+                    Board nextBoard = _board;
+                    nextBoard.doMove(_moves[i]);
+                    if (nextBoard.isSquare(player))
+                    {
+                        int x = _moves[i].to.x;
+                        int y = _moves[i].to.y;
+                        daiPunch.setStone(x, y, player);
+                    }
+                }
+            }
         }
 
         // 盤面の描画
@@ -165,6 +194,18 @@ namespace KCSharp
                             int py = y * BOX_WIDTH + 1;
                             int pw = BOX_WIDTH - 2;
                             g.FillRectangle(Brushes.DeepPink, px, py, pw, pw);
+                        }
+                    }
+                    // 大パンチ位置に印を付ける
+                    else
+                    {
+                        int punch = daiPunch.getStone(x, y);
+                        if(punch != Board.NO_STONE)
+                        {
+                            int px = x * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
+                            int py = y * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
+                            Brush brush = (punch == Board.FIRST_MOVE) ? Brushes.Black : Brushes.White;
+                            g.FillEllipse(brush, px, py, AVEILABLE_MARK_SIZE, AVEILABLE_MARK_SIZE);
                         }
                     }
                     // 直前の着手を矢印で示す
@@ -292,6 +333,7 @@ namespace KCSharp
             selectedStone = Position.NONE;
             turnCnt = 0;
             record.Clear();
+            daiPunch.reset();
 
             drawBoard();
             updateControls();
@@ -396,6 +438,7 @@ namespace KCSharp
                     selectedStone = Position.NONE;
                     turnCnt++;
                     record.Add(board);
+                    checkDaiPunch();
 
                     // 盤面の描画
                     drawBoard();
@@ -431,6 +474,7 @@ namespace KCSharp
             board.doMove(move);
             turnCnt++;
             record.Add(board);
+            checkDaiPunch();
 
             this.Invoke((Action)(() =>
             {
@@ -469,6 +513,7 @@ namespace KCSharp
             board.doMove(move);
             turnCnt++;
             record.Add(board);
+            checkDaiPunch();
 
             this.Invoke((Action)(() =>
             {
@@ -527,6 +572,7 @@ namespace KCSharp
             if (turnCnt == 0) return;
             turnCnt--;
             board = record[turnCnt];
+            checkDaiPunch();
             drawBoard();
         }
 
@@ -536,6 +582,7 @@ namespace KCSharp
             if (turnCnt >= record.Count - 1) return;
             turnCnt++;
             board = record[turnCnt];
+            checkDaiPunch();
             drawBoard();
         }
 
