@@ -18,9 +18,25 @@ namespace KCSharp
         // 乱数生成器
         private Random rand = new Random();
 
+        // ビット位置→座標 テーブル
+        private int[] xTable;
+        private int[] yTable;
+
         /********** メソッド **********/
         // コンストラクタ (読みの深さと先手/後手を指定)
-        public Engine3(int depth, int order) : base(depth, order) { }
+        public Engine3(int depth, int order) : base(depth, order)
+        {
+            // ビット位置→座標 テーブル を予め算出
+            xTable = new int[Board.SIZE * Board.SIZE];
+            yTable = new int[Board.SIZE * Board.SIZE];
+
+            int size = Board.SIZE;
+            for (int i = 0; i < size*size; i++)
+            {
+                xTable[i] = i % size;
+                yTable[i] = i / size;
+            }
+        }
 
         // 次の手を取得する
         public override Move getNextMove(Board board)
@@ -39,12 +55,12 @@ namespace KCSharp
         }
 
         // 自乗形四率(Square Keishi Rate)の計算 (0～100)
-        int[] sx = new int[4];
-        int[] sy = new int[4];
         public int getSKR (UInt32 stones)
         {
+            Span<int> sx = stackalloc int[4];
+            Span<int> sy = stackalloc int[4];
+            
             // 石の座標を取得
-            const int SIZE = Board.SIZE;
             int idx = 0;
             while (stones != 0 && idx < 4)
             {
@@ -52,8 +68,8 @@ namespace KCSharp
                 int pos = BitOperations.TrailingZeroCount(stones);
 
                 // 座標に変換
-                sx[idx] = pos % SIZE;
-                sy[idx] = pos / SIZE;
+                sx[idx] = xTable[pos];
+                sy[idx] = yTable[pos];
                 idx++;
 
                 // 最下位の 1 ビットを落とす
