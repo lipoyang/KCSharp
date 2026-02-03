@@ -41,11 +41,10 @@ namespace KCSharp
         // 自乗形四率(Square Keishi Rate)の計算 (0～100)
         int[] sx = new int[4];
         int[] sy = new int[4];
-        public int getSKR (Board board, int player)
+        public int getSKR (UInt32 stones)
         {
             // 石の座標を取得
             const int SIZE = Board.SIZE;
-            UInt32 stones = (player == Board.BLACK) ? board.blackStones : board.whiteStones;
             int idx = 0;
             while (stones != 0 && idx < 4)
             {
@@ -85,39 +84,15 @@ namespace KCSharp
             return skr;
         }
 
-        // 評価関数
-        public int evalFunction(Board board)
-        {
-            // 先手の自乗形四率 * 重み + ランダム
-            int eval_black = getSKR(board, Board.BLACK) + rand.Next(10);
-            // 後手の自乗形四率 * 重み + ランダム
-            int eval_white = getSKR(board, Board.WHITE) + rand.Next(10);
-
-            // 評価値
-            int eval = eval_black - eval_white;
-            if (eval >=  100) eval =  99;
-            if (eval <= -100) eval = -99;
-            if (myOrder == Board.WHITE)
-            {
-                eval = -eval;
-            }
-            return eval;
-        }
-
         // アルファベータ法による先読み (再帰)
         public int readAlphaBeta(Board board, int depth, int alpha, int beta)
         {
             // 中断判定
             if (canceling) return int.MinValue;
 
-            // 先読み深さの末端に到達したら評価値を返す
-            if (depth == maxDepth)
-            {
-                // 評価関数
-                int eval = evalFunction(board);
-                //Debug.Write(depth + ":" + eval + " ");
-                return eval;
-            }
+            // 相手の石の静的評価値を計算
+            UInt32 hisStones = (hisOrder == Board.BLACK) ? board.blackStones : board.whiteStones;
+            int hisEval = getSKR(hisStones);
 
             // 次の局面を列挙
             Span<Move> nextMoves = new Span<Move>(moveBuffer, MAX_MOVE * depth, MAX_MOVE);
@@ -134,16 +109,28 @@ namespace KCSharp
                 // 決まり手か？ (正方形判定)
                 if (nextBoard.isSquare(board.turnHolder))
                 {
+                    // 決まり手の評価値 (速いほど高い)
                     if (board.turnHolder == myOrder)
                     {
                         eval = (maxDepth - depth) * 100;
-                    }
-                    else
-                    {
+                    } else {
                         eval = -(maxDepth - depth) * 100;
                     }
                 }
-                // 決まり手でないなら再帰呼び出し
+                // 先読み深さの末端に到達したか？
+                else if (depth + 1 == maxDepth)
+                {
+                    // 相手の石の静的評価値を計算
+                    UInt32 myStones = (myOrder == Board.BLACK) ? nextBoard.blackStones : nextBoard.whiteStones;
+                    int myEval = getSKR(myStones);
+
+                    // 静的評価値 = 彼我の評価値の差 + 乱数
+                    eval = myEval - hisEval;
+                    eval += rand.Next(-10, 11); // -10～10
+                    if (eval >= 100) eval = 99;
+                    if (eval <= -100) eval = -99;
+                }
+                // いずれでもないなら再帰呼び出し
                 else
                 {
                     eval = readAlphaBeta(nextBoard, depth + 1, alpha, beta);
@@ -155,6 +142,7 @@ namespace KCSharp
                     Debug.WriteLine($"{i} : ({nextMoves[i].from.x}, {nextMoves[i].from.y})->({nextMoves[i].to.x}, {nextMoves[i].to.y}) : {eval}");
                 }
 
+                // アルファカット
                 if ((board.turnHolder == myOrder) && (eval > alpha))
                 {
                     alpha = eval;
@@ -167,6 +155,7 @@ namespace KCSharp
                         break;
                     }
                 }
+                // ベータカット
                 if ((board.turnHolder != myOrder) && (eval < beta))
                 {
                     beta = eval;

@@ -8,6 +8,7 @@
         {
             this.maxDepth = depth;
             this.myOrder = order;
+            this.hisOrder = 1 - order;
         }
 
         // 次の手を取得する
@@ -24,7 +25,8 @@
         }
 
         protected int maxDepth; // 読みの深さ
-        protected int myOrder; // 先手/後手
+        protected int myOrder;  // 自分の手番 (先手/後手)
+        protected int hisOrder; // 相手の手番 (先手/後手)
 
         protected Move bestMove; // 最善手
 
