@@ -43,7 +43,9 @@ namespace KCSharp
         Position selectedStone = Position.NONE;
         // 大パンチ位置データ
         Board daiPunch;
-
+        // 大パンチチェック用の候補手バッファ
+        Move[] movesBuffer = new Move[32];
+        
         // プレイヤーの先手/後手
         int you = Board.BLACK;
         // CPUの先手/後手
@@ -61,14 +63,20 @@ namespace KCSharp
 
         // ランダム局面データ
         Random rand = new Random();
-        Board randomPosition;
+        Board randomPosition = new Board();
 
+        // 盤面の描画用
+        Bitmap canvas;
+        
         /********** メソッド **********/
         #region コンストラクタ
         public FormMain()
         {
             InitializeComponent();
             buttonChange.Location = new Point(710, 218); // ボタン位置調整
+            
+            // 盤面の描画用
+            canvas = new Bitmap(pictureBoard.Width, pictureBoard.Height);
 
             // 初期局面データの読み込み
             if (initialPosition.load() == false)
@@ -76,7 +84,7 @@ namespace KCSharp
                 MessageBox.Show("初期局面データの読み込みに失敗しました。");
             }
             // ランダム局面の生成
-            randomPosition = randomBoard();
+            generateRandomPosition();
 
             // ゲーム設定の初期値
             comboMove.SelectedIndex = 0;
@@ -92,10 +100,9 @@ namespace KCSharp
 
         #region 一般メソッド
         // ランダム盤面の生成
-        private Board randomBoard()
+        private void generateRandomPosition()
         {
-            Board board = new Board();
-            board.reset();
+            randomPosition.reset();
             for (int i = 0; i < 8; i++)
             {
                 int x, y;
@@ -103,11 +110,10 @@ namespace KCSharp
                 {
                     x = rand.Next(Board.SIZE);
                     y = rand.Next(Board.SIZE);
-                } while (board.getStone(x, y) != Board.NO_STONE);
-                board.setStone(
+                } while (randomPosition.getStone(x, y) != Board.NO_STONE);
+                randomPosition.setStone(
                     x, y, (i % 2 == 0) ? Board.BLACK : Board.WHITE);
             }
-            return board;
         }
 
         // 大パンチ位置チェック
@@ -119,17 +125,16 @@ namespace KCSharp
             for(int player = 0; player < 2; player++)
             {
                 _board.turn = player;
-                Move[] moves = new Move[32];
-                Span<Move> _moves = new Span<Move>(moves, 0, 32);
-                int cnt = _board.enumNextMoves(moves);
+                Span<Move> nextMoves = new Span<Move>(movesBuffer, 0, 32);
+                int cnt = _board.enumNextMoves(movesBuffer);
                 for (int i = 0; i < cnt; i++)
                 {
                     Board nextBoard = _board;
-                    nextBoard.doMove(_moves[i]);
+                    nextBoard.doMove(nextMoves[i]);
                     if (nextBoard.isSquare(player))
                     {
-                        int x = _moves[i].to.x;
-                        int y = _moves[i].to.y;
+                        int x = nextMoves[i].to.x;
+                        int y = nextMoves[i].to.y;
                         daiPunch.setStone(x, y, player);
                     }
                 }
@@ -139,12 +144,11 @@ namespace KCSharp
         // 盤面の描画
         private void drawBoard()
         {
-            Bitmap canvas = new Bitmap(pictureBoard.Width, pictureBoard.Height);
             Graphics g = Graphics.FromImage(canvas);
 
             // 盤面の背景色 
-            Rectangle rect = new Rectangle(0, 0, pictureBoard.Width - 1, pictureBoard.Height - 1);
-            g.FillRectangle(Brushes.DarkTurquoise, rect);
+            g.FillRectangle(Brushes.DarkTurquoise, 
+                0, 0, pictureBoard.Width - 1, pictureBoard.Height - 1);
 
             // 升目の黒線
             int px1 = 0;
@@ -635,7 +639,7 @@ namespace KCSharp
         // ランダム盤面のチェンジボタン
         private void buttonChange_Click(object sender, EventArgs e)
         {
-            randomPosition = randomBoard();
+            generateRandomPosition();
             setInitialPosition();
         }
         #endregion
