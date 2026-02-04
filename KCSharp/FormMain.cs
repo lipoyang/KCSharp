@@ -217,15 +217,16 @@ namespace KCSharp
                     // 直前の着手を矢印で示す
                     for (int i = 0; i < 2; i++)
                     {
-                        if (board.getLastMove(i) == KCSharp.Move.NONE)
+                        Move lastMove = board.getLastMove(i);
+                        if (lastMove == KCSharp.Move.NONE)
                         {
                             continue;
                         }
-                        if (board.getLastMove(i).from.x == x &&
-                            board.getLastMove(i).from.y == y)
+                        if (lastMove.from.x == x &&
+                            lastMove.from.y == y)
                         {
-                            int x2 = board.getLastMove(i).to.x;
-                            int y2 = board.getLastMove(i).to.y;
+                            int x2 = lastMove.to.x;
+                            int y2 = lastMove.to.y;
 
                             px1 = x * BOX_WIDTH + BOX_WIDTH / 2;
                             py1 = y * BOX_WIDTH + BOX_WIDTH / 2;
@@ -457,12 +458,12 @@ namespace KCSharp
 
                 // CPUの思考エンジンを生成
                 int cpuLevel = comboLevel.SelectedIndex + 1; // レベル1～7
-                cpuEngine = new Engine3(cpuLevel, cpu);
+                cpuEngine = new Engine_AB_SKR(cpuLevel, cpu);
                 if (isDebug)
                 {
                     // デバッグ用CPU2エンジン生成
-                    cpuEngine = new Engine3(7, cpu);
-                    cpu2Engine = new Engine3(7, you);
+                    cpuEngine = new Engine_AB_SKR(cpuLevel, cpu);
+                    cpu2Engine = new Engine_AB_SKR(cpuLevel, you);
                 }
 
                 // CPUが先手の場合

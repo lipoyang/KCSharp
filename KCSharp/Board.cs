@@ -113,6 +113,11 @@ namespace KCSharp
         {
             return (player == BLACK) ? lastMoveB : lastMoveW;
         }
+        public void getLastMove(int player, out Move move)
+        {
+            move = (player == BLACK) ? lastMoveB : lastMoveW;
+        }
+
         // 最後の着手を設定
         public void setLastMove(int player, Move move)
         {
@@ -216,7 +221,8 @@ namespace KCSharp
             if(isNoStone(to) == false) return false;
 
             // うろちょろ禁止ルールチェック
-            Move last = getLastMove(turn);
+            Move last;
+            getLastMove(turn, out last);
             if ((last.from == to) && (last.to == from))
             {
                 return false;

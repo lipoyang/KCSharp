@@ -3,8 +3,8 @@ using System.Numerics;
 
 namespace KCSharp
 {
-    // 思考エンジン 3号（探索：アルファベータ法、評価：速く詰むか+詰まないなら自乗形四率(SKR) ）
-    class Engine3 : Engine
+    // 思考エンジン（探索：アルファベータ法、評価：速く詰むか、詰まないなら自乗形四率(SKR)+乱数 ）
+    class Engine_AB_SKR : Engine
     {
         /********** デバッグ用 **********/
         const bool debugLog = false;
@@ -20,7 +20,7 @@ namespace KCSharp
 
         /********** メソッド **********/
         // コンストラクタ (読みの深さと先手/後手を指定)
-        public Engine3(int depth, int order) : base(depth, order) { }
+        public Engine_AB_SKR(int depth, int order) : base(depth, order) { }
 
         // 次の手を取得する
         public override Move getNextMove(Board board)
@@ -39,10 +39,12 @@ namespace KCSharp
         }
 
         // 自乗形四率(Square Keishi Rate)の計算 (0～100)
+        private int[] sx_buffer = new int[4];
+        private int[] sy_buffer = new int[4];
         public int getSKR (UInt32 stones)
         {
-            Span<int> sx = stackalloc int[4];
-            Span<int> sy = stackalloc int[4];
+            int[] sx = sx_buffer;
+            int[] sy = sy_buffer;
             
             // 石の座標を取得
             int idx = 0;
