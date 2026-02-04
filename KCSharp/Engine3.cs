@@ -18,31 +18,15 @@ namespace KCSharp
         // 乱数生成器
         private Random rand = new Random();
 
-        // ビット位置→座標 テーブル
-        private int[] xTable;
-        private int[] yTable;
-
         /********** メソッド **********/
         // コンストラクタ (読みの深さと先手/後手を指定)
-        public Engine3(int depth, int order) : base(depth, order)
-        {
-            // ビット位置→座標 テーブル を予め算出
-            xTable = new int[Board.SIZE * Board.SIZE];
-            yTable = new int[Board.SIZE * Board.SIZE];
-
-            int size = Board.SIZE;
-            for (int i = 0; i < size*size; i++)
-            {
-                xTable[i] = i % size;
-                yTable[i] = i / size;
-            }
-        }
+        public Engine3(int depth, int order) : base(depth, order) { }
 
         // 次の手を取得する
         public override Move getNextMove(Board board)
         {
             // 次の手を考える
-            int eval = readAlphaBeta(board, 0, int.MinValue, int.MaxValue);
+            int eval = readAlphaBeta(ref board, 0, int.MinValue, int.MaxValue);
 
             // 中断判定
             if (eval == int.MinValue)
@@ -68,8 +52,8 @@ namespace KCSharp
                 int pos = BitOperations.TrailingZeroCount(stones);
 
                 // 座標に変換
-                sx[idx] = xTable[pos];
-                sy[idx] = yTable[pos];
+                sx[idx] = BitPos2Coord.x[pos];
+                sy[idx] = BitPos2Coord.y[pos];
                 idx++;
 
                 // 最下位の 1 ビットを落とす
@@ -101,7 +85,7 @@ namespace KCSharp
         }
 
         // アルファベータ法による先読み (再帰)
-        public int readAlphaBeta(Board board, int depth, int alpha, int beta)
+        public int readAlphaBeta(ref Board board, int depth, int alpha, int beta)
         {
             // 中断判定
             if (canceling) return int.MinValue;
@@ -114,6 +98,8 @@ namespace KCSharp
             Span<Move> nextMoves = new Span<Move>(moveBuffer, MAX_MOVE * depth, MAX_MOVE);
             int moveCount = board.enumNextMoves(nextMoves);
 
+            int player = board.turn;
+
             // 自分の手番なら最も自分に有利な手を選択（自分にとっての最善手）
             // 相手の手番なら最も自分に不利な手を選択（相手にとっての最善手）
             for (int i = 0; i < moveCount; i++)
@@ -123,10 +109,10 @@ namespace KCSharp
                 int eval; // 評価値
 
                 // 決まり手か？ (正方形判定)
-                if (nextBoard.isSquare(board.turnHolder))
+                if (nextBoard.isSquare(player))
                 {
                     // 決まり手の評価値 (速いほど高い)
-                    if (board.turnHolder == myOrder)
+                    if (player == myOrder)
                     {
                         eval = (maxDepth - depth) * 100;
                     } else {
@@ -149,7 +135,7 @@ namespace KCSharp
                 // いずれでもないなら再帰呼び出し
                 else
                 {
-                    eval = readAlphaBeta(nextBoard, depth + 1, alpha, beta);
+                    eval = readAlphaBeta(ref nextBoard, depth + 1, alpha, beta);
                     // 中断判定
                     if(eval == int.MinValue) return int.MinValue;
                 }
@@ -159,7 +145,7 @@ namespace KCSharp
                 }
 
                 // アルファカット
-                if ((board.turnHolder == myOrder) && (eval > alpha))
+                if ((player == myOrder) && (eval > alpha))
                 {
                     alpha = eval;
                     if (depth == 0)
@@ -172,7 +158,7 @@ namespace KCSharp
                     }
                 }
                 // ベータカット
-                if ((board.turnHolder != myOrder) && (eval < beta))
+                if ((player != myOrder) && (eval < beta))
                 {
                     beta = eval;
                     if (depth == 0)
@@ -185,7 +171,7 @@ namespace KCSharp
                     }
                 }
             }
-            int best = (board.turnHolder == myOrder) ? alpha: beta;
+            int best = (player == myOrder) ? alpha: beta;
             if (debugLog && depth == 0)
             {
                 Debug.WriteLine($"Move ({bestMove.from.x}, {bestMove.from.y})->({bestMove.to.x}, {bestMove.to.y}) : {best}");

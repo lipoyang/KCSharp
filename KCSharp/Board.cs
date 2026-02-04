@@ -57,10 +57,6 @@ namespace KCSharp
         {
             this.data = rawdata;
         }
-        public Move invert()
-        {
-            return new Move(this.to, this.from);
-        }
         public static bool operator ==(Move m1, Move m2)
         {
             return m1.data == m2.data;
@@ -69,6 +65,25 @@ namespace KCSharp
         {
             return m1.data != m2.data;
         }
+    }
+
+    // ビット位置→座標変換器
+    class BitPos2Coord
+    {
+        public static int[] x = [
+            0,1,2,3,4,
+            0,1,2,3,4,
+            0,1,2,3,4,
+            0,1,2,3,4,
+            0,1,2,3,4
+        ];
+        public static int[] y = [
+            0,0,0,0,0,
+            1,1,1,1,1,
+            2,2,2,2,2,
+            3,3,3,3,3,
+            4,4,4,4,4
+        ];
     }
 
     // 盤面データ
@@ -89,7 +104,7 @@ namespace KCSharp
         // 盤面
         public UInt32 blackStones; // (x,y) -> bit位置: (x + y * SIZE)
         public UInt32 whiteStones; // (x,y) -> bit位置: (x + y * SIZE)
-        // 対局開始からの手順数
+        // 手番持ちのプレイヤー（先手 or 後手）
         public int turn;
 
         /**********  メソッド  **********/
@@ -107,11 +122,6 @@ namespace KCSharp
                 lastMoveW = move;
             }
         }
-        // 手番持ちのプレイヤーを取得（先手 or 後手）
-        public int turnHolder
-        {
-            get { return turn % 2; }
-        }
 
         // 盤面を初期状態にリセットする
         public void reset()
@@ -119,7 +129,7 @@ namespace KCSharp
             // 盤面をクリア
             blackStones = 0x0000000;
             whiteStones = 0x0000000;
-            turn = 0;
+            turn = 0; // 先手
             lastMoveB = Move.NONE;
             lastMoveW = Move.NONE;
         }
@@ -182,7 +192,7 @@ namespace KCSharp
         // そこに自分の石があるか判定する
         public bool isMyStone(Position pos)
         {
-            int mine = turnHolder;
+            int mine = turn;
             if (!isInBoard(pos.x, pos.y)) return false;
             if (getStone(pos.x, pos.y) != mine) return false;
             return true;
@@ -206,7 +216,7 @@ namespace KCSharp
             if(isNoStone(to) == false) return false;
 
             // うろちょろ禁止ルールチェック
-            Move last = getLastMove(turnHolder);
+            Move last = getLastMove(turn);
             if ((last.from == to) && (last.to == from))
             {
                 return false;
@@ -223,19 +233,17 @@ namespace KCSharp
         // 着手する
         public void doMove(Move move)
         {
-            // 先手/後手か
-            int mine = turnHolder;
-            // 手順数を進める
-            turn++;
-
             // 石の移動
             Position p1 = move.from;
             clearStone(p1.x, p1.y);
             Position p2 = move.to;
-            setStone(p2.x, p2.y, mine);
+            setStone(p2.x, p2.y, turn);
 
             // 最後の着手を更新
-            setLastMove(mine, move);
+            setLastMove(turn, move);
+
+            // 手番交替
+            turn = 1 - turn;
         }
 
         // 正方形か判定する
@@ -282,11 +290,15 @@ namespace KCSharp
                 if ((stones >> 5) == pattern) return true;
                 if ((stones >> 6) == pattern) return true;
             }
+            
+            int tz = BitOperations.TrailingZeroCount(stones);
+            int x = BitPos2Coord.x[tz];
+            int y = BitPos2Coord.y[tz];
+
             // 間四判定
             if ((stones & 0x0001CE7) != 0)
             {
-                int tz = BitOperations.TrailingZeroCount(stones);
-                if ((tz % 5 <= 2) && (tz / 5 <= 2))
+                if (x <= 2 && y <= 2)
                 {
                     UInt32 shifted = stones >> tz;
                     if (shifted == 0x0001405) return true;
@@ -295,19 +307,16 @@ namespace KCSharp
             // 十四判定
             if ((stones & 0x00039CE) != 0)
             {
-                int tz = BitOperations.TrailingZeroCount(stones);
-                int _tz = tz - 1;
-                if ((_tz % 5 <= 2) && (_tz / 5 <= 2))
+                if (x >= 1 && x <= 3 && y <= 2)
                 {
-                    UInt32 shifted = stones >> _tz;
+                    UInt32 shifted = stones >> (tz - 1);
                     if (shifted == 0x00008A2) return true;
                 }
             }
             // 方四判定
             if ((stones & 0x007BDEF) != 0)
             {
-                int tz = BitOperations.TrailingZeroCount(stones);
-                if ((tz % 5 <= 3) && (tz / 5 <= 3))
+                if (x <= 3 && y <= 3)
                 {
                     UInt32 shifted = stones >> tz;
                     if (shifted == 0x0000063) return true;
@@ -320,8 +329,9 @@ namespace KCSharp
         public int enumNextMoves(Span<Move> nextMoves)
         {
             int moveCount = 0;
-            UInt32 stones = (turnHolder == BLACK) ? blackStones : whiteStones;
-            Move urochoro = getLastMove(turnHolder).invert(); // うろちょろ禁止着手
+            int player = turn;
+            UInt32 stones = (player == BLACK) ? blackStones : whiteStones;
+            Move lastMove = getLastMove(player);
 
             // 盤面から有効な着手を探す
             int cnt = 0;
@@ -333,8 +343,8 @@ namespace KCSharp
                 stones &= stones - 1;
 
                 // 座標に変換
-                int x = tz % SIZE;
-                int y = tz / SIZE;
+                int x = BitPos2Coord.x[tz];
+                int y = BitPos2Coord.y[tz];
                 Position from = new Position(x, y);
                 cnt++;
 
@@ -358,7 +368,7 @@ namespace KCSharp
                         Position to = new Position(dx, dy);
 
                         // うろちょろ禁止ルールチェック
-                        if ((to == urochoro.to) && (from == urochoro.from))
+                        if ((to == lastMove.from) && (from == lastMove.to))
                         {
                             continue;
                         }

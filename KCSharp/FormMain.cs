@@ -122,7 +122,7 @@ namespace KCSharp
             daiPunch.reset();
 
             Board _board = board;
-            for(int player = 0; player < 2; player++)
+            for(int player = Board.BLACK; player <= Board.WHITE; player++)
             {
                 _board.turn = player;
                 Span<Move> nextMoves = new Span<Move>(movesBuffer, 0, 32);
@@ -267,8 +267,8 @@ namespace KCSharp
                     textTurn.ForeColor = Color.Green;
                     break;
                 case GameStatus.PLAYING:
-                    textTurn.Text = (board.turnHolder == you) ? "あなた" : "CPU";
-                    textTurn.ForeColor = (board.turnHolder == you) ? Color.Red : Color.Blue;
+                    textTurn.Text = (board.turn == you) ? "あなた" : "CPU";
+                    textTurn.ForeColor = (board.turn == you) ? Color.Red : Color.Blue;
                     break;
                 case GameStatus.FINISHED:
                     textTurn.Text = "終了";
@@ -433,7 +433,7 @@ namespace KCSharp
             if (gameStatus == GameStatus.PLAYING)
             {
                 // CPUの手番だったら中断させる
-                if (board.turnHolder == cpu)
+                if (board.turn == cpu)
                 {
                     cpuEngine.cancel();
                 }
@@ -461,7 +461,7 @@ namespace KCSharp
                 if (isDebug)
                 {
                     // デバッグ用CPU2エンジン生成
-                    cpuEngine = new Engine2(5, cpu);
+                    cpuEngine = new Engine3(7, cpu);
                     cpu2Engine = new Engine3(7, you);
                 }
 
@@ -494,7 +494,7 @@ namespace KCSharp
                 return;
             }
             // プレイヤーの手番かチェック
-            if (board.turnHolder == cpu)
+            if (board.turn == cpu)
             {
                 MessageBox.Show("あなたの手番ではありません!");
                 return;
