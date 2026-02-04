@@ -7,4 +7,4 @@
 KCSharp は、C#で作成したWindows用の形四アプリです。  
 実行ファイルのダウンロードは [こちら](https://github.com/lipoyang/KCSharp/releases/) から。
 
-![スクリーンショット](./screen.png)
+<img src="./screen.png" alt="スクリーンショット" width="633" />
