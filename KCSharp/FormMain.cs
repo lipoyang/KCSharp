@@ -13,8 +13,8 @@ namespace KCSharp
         const int BOX_WIDTH = 100;
         // 石の直径
         const int STONE_SIZE = 80;
-        // 着手可能位置の印の直径
-        const int AVEILABLE_MARK_SIZE = 40;
+        // マークの直径
+        const int MARK_SIZE = 40;
         // 矢印のペンの太さとサイズ
         Pen arrowPen = new Pen(Color.Black, 4);
         AdjustableArrowCap arrowCap = new AdjustableArrowCap(6, 6);
@@ -42,9 +42,7 @@ namespace KCSharp
         // 選択中の石の位置
         Position selectedStone = Position.NONE;
         // 大パンチ位置データ
-        Board daiPunch;
-        // 大パンチチェック用の候補手バッファ
-        Move[] movesBuffer = new Move[32];
+        DaiPunch daiPunch = new DaiPunch();
         
         // プレイヤーの先手/後手
         int you = Board.BLACK;
@@ -116,31 +114,6 @@ namespace KCSharp
             }
         }
 
-        // 大パンチ位置チェック
-        private void checkDaiPunch()
-        {
-            daiPunch.reset();
-
-            Board _board = board;
-            for(int player = Board.BLACK; player <= Board.WHITE; player++)
-            {
-                _board.turn = player;
-                Span<Move> nextMoves = new Span<Move>(movesBuffer, 0, 32);
-                int cnt = _board.enumNextMoves(movesBuffer);
-                for (int i = 0; i < cnt; i++)
-                {
-                    Board nextBoard = _board;
-                    nextBoard.doMove(nextMoves[i]);
-                    if (nextBoard.isSquare(player))
-                    {
-                        int x = nextMoves[i].to.x;
-                        int y = nextMoves[i].to.y;
-                        daiPunch.setStone(x, y, player);
-                    }
-                }
-            }
-        }
-
         // 盤面の描画
         private void drawBoard()
         {
@@ -186,9 +159,9 @@ namespace KCSharp
                         Position pos = new Position(x, y);
                         if (board.isAvailableMove(selectedStone, pos))
                         {
-                            int px = x * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
-                            int py = y * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
-                            g.FillEllipse(Brushes.Gold, px, py, AVEILABLE_MARK_SIZE, AVEILABLE_MARK_SIZE);
+                            int px = x * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
+                            int py = y * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
+                            g.FillEllipse(Brushes.Gold, px, py, MARK_SIZE, MARK_SIZE);
                         }
                     }
                     // 勝負がついている場合、勝者の石をハイライト
@@ -208,10 +181,10 @@ namespace KCSharp
                         int punch = daiPunch.getStone(x, y);
                         if(punch != Board.NO_STONE)
                         {
-                            int px = x * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
-                            int py = y * BOX_WIDTH + (BOX_WIDTH - AVEILABLE_MARK_SIZE) / 2;
+                            int px = x * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
+                            int py = y * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
                             Brush brush = (punch == Board.BLACK) ? Brushes.Black : Brushes.White;
-                            g.FillEllipse(brush, px, py, AVEILABLE_MARK_SIZE, AVEILABLE_MARK_SIZE);
+                            g.FillEllipse(brush, px, py, MARK_SIZE, MARK_SIZE);
                         }
                     }
                     // 直前の着手を矢印で示す
@@ -359,7 +332,7 @@ namespace KCSharp
             board.doMove(move);
             turnCnt++;
             record.Add(board);
-            checkDaiPunch();
+            daiPunch.check(board);
 
             this.Invoke((Action)(() =>
             {
@@ -398,7 +371,7 @@ namespace KCSharp
             board.doMove(move);
             turnCnt++;
             record.Add(board);
-            checkDaiPunch();
+            daiPunch.check(board);
 
             this.Invoke((Action)(() =>
             {
@@ -526,7 +499,7 @@ namespace KCSharp
                     selectedStone = Position.NONE;
                     turnCnt++;
                     record.Add(board);
-                    checkDaiPunch();
+                    daiPunch.check(board);
 
                     // 盤面の描画
                     drawBoard();
@@ -583,7 +556,7 @@ namespace KCSharp
             if (turnCnt == 0) return;
             turnCnt--;
             board = record[turnCnt];
-            checkDaiPunch();
+            daiPunch.check(board);
             drawBoard();
         }
 
@@ -593,7 +566,7 @@ namespace KCSharp
             if (turnCnt >= record.Count - 1) return;
             turnCnt++;
             board = record[turnCnt];
-            checkDaiPunch();
+            daiPunch.check(board);
             drawBoard();
         }
 

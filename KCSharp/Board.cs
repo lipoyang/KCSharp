@@ -389,4 +389,50 @@ namespace KCSharp
             return moveCount;
         }
     }
+
+    // 大パンチチェッカー
+    class DaiPunch
+    {
+        // 大パンチチェック用の候補手バッファ
+        private Move[] movesBuffer = new Move[32];
+
+        public Board positions = new Board();
+
+        // 大パンチ位置チェック
+        public void check(Board board)
+        {
+            positions.reset();
+
+            Board _board = board;
+            for (int player = Board.BLACK; player <= Board.WHITE; player++)
+            {
+                _board.turn = player;
+                Span<Move> nextMoves = new Span<Move>(movesBuffer, 0, 32);
+                int cnt = _board.enumNextMoves(movesBuffer);
+                for (int i = 0; i < cnt; i++)
+                {
+                    Board nextBoard = _board;
+                    nextBoard.doMove(nextMoves[i]);
+                    if (nextBoard.isSquare(player))
+                    {
+                        int x = nextMoves[i].to.x;
+                        int y = nextMoves[i].to.y;
+                        positions.setStone(x, y, player);
+                    }
+                }
+            }
+        }
+
+        // リセットする
+        public void reset()
+        {
+            positions.reset();
+        }
+
+        // 指定された場所の石を取得する
+        public int getStone(int x, int y)
+        {
+            return positions.getStone(x, y);
+        }
+    }
 }
