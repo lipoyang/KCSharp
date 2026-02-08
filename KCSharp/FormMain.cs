@@ -49,7 +49,7 @@ namespace KCSharp
         // CPUの先手/後手
         int cpu = Board.WHITE;
         // 勝者
-        int winner = Board.NO_STONE;
+        int winner = Board.NONE;
 
         // 初期局面番号
         int initPosNo = 1;
@@ -108,7 +108,7 @@ namespace KCSharp
                 {
                     x = rand.Next(Board.SIZE);
                     y = rand.Next(Board.SIZE);
-                } while (randomPosition.getStone(x, y) != Board.NO_STONE);
+                } while (randomPosition.getStone(x, y) != Board.NONE);
                 randomPosition.setStone(
                     x, y, (i % 2 == 0) ? Board.BLACK : Board.WHITE);
             }
@@ -165,7 +165,7 @@ namespace KCSharp
                         }
                     }
                     // 勝負がついている場合、勝者の石をハイライト
-                    if (winner != Board.NO_STONE && turnCnt == record.Count - 1)
+                    if (winner != Board.NONE && turnCnt == record.Count - 1)
                     {
                         if (board.getStone(x, y) == winner)
                         {
@@ -179,7 +179,7 @@ namespace KCSharp
                     else
                     {
                         int punch = daiPunch.getStone(x, y);
-                        if(punch != Board.NO_STONE)
+                        if(punch != Board.NONE)
                         {
                             int px = x * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
                             int py = y * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
@@ -188,7 +188,7 @@ namespace KCSharp
                         }
                     }
                     // 直前の着手を矢印で示す
-                    for (int i = 0; i < 2; i++)
+                    for (int i = Board.BLACK; i <= Board.WHITE; i++)
                     {
                         Move lastMove = board.getLastMove(i);
                         if (lastMove == KCSharp.Move.NONE)
@@ -309,7 +309,7 @@ namespace KCSharp
             }
 
             gameStatus = GameStatus.READY;
-            winner = Board.NO_STONE;
+            winner = Board.NONE;
             selectedStone = Position.NONE;
             turnCnt = 0;
             record.Clear();

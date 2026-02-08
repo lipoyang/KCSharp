@@ -93,7 +93,7 @@ namespace KCSharp
         // マスの値
         public const int BLACK = 0;     // 先手
         public const int WHITE = 1;     // 後手
-        public const int NO_STONE = -1; // 石が無い
+        public const int NONE = -1;     // 石が無い
         // 盤のサイズ (5×5マス)
         public const int SIZE = 5;
 
@@ -161,7 +161,7 @@ namespace KCSharp
 
             if ((blackStones & mask) != 0) return BLACK;
             if ((whiteStones & mask) != 0) return WHITE;
-            return NO_STONE;
+            return NONE;
         }
 
         // 指定された場所の石を設定する
@@ -207,7 +207,7 @@ namespace KCSharp
         public bool isNoStone(Position pos)
         {
             if (!isInBoard(pos.x, pos.y)) return false;
-            if (getStone(pos.x, pos.y) != NO_STONE) return false;
+            if (getStone(pos.x, pos.y) != NONE) return false;
             return true;
         }
 
