@@ -14,7 +14,7 @@ namespace KCSharp
         public const int SIZE = 5;   // 盤のサイズ (5×5マス)
 
         public int player = NONE; // 先手/後手
-        public Position[] stones = new Position[4]; // 石の位置
+        public UInt32 stones; // 石の位置
 
         public Kifu(string str)
         {
@@ -34,6 +34,7 @@ namespace KCSharp
             }
 
             // 石の座標を解釈
+            stones = 0;
             var s = str.Substring(1);
             var items = s.Split(',', StringSplitOptions.RemoveEmptyEntries);
             if (items.Length != 4) return; // 座標データが4個無い
@@ -45,7 +46,7 @@ namespace KCSharp
                 int y = item[1] - '0' - 1;
                 if (x < 0 || x >= SIZE) return; // xの値が不正
                 if (y < 0 || y >= SIZE) return; // yの値が不正
-                stones[i] = new Position(x, y);
+                stones |= (1u << (y * 5 + x));
             }
         }
     }
@@ -61,10 +62,10 @@ namespace KCSharp
 
         public InitialPosition(string path, int max)
         {
-            InitialPositionNum = max;
             InitialPositionFilePath = path;
-            black = new Kifu[InitialPositionNum];
-            white = new Kifu[InitialPositionNum];
+            InitialPositionNum = max;
+            black = new Kifu[max];
+            white = new Kifu[max];
         }
 
         // 初期局面のロード

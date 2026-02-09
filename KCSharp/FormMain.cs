@@ -300,7 +300,7 @@ namespace KCSharp
                 case 0:
                     Kifu black = initialPosition.black[initPosNo-1];
                     Kifu white = initialPosition.white[initPosNo-1];
-                    board.reset(black, white);
+                    board.reset(black.stones, white.stones);
                     break;
                 // ランダム
                 case 1:

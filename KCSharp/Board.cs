@@ -138,20 +138,11 @@ namespace KCSharp
             lastMoveB = Move.NONE;
             lastMoveW = Move.NONE;
         }
-        public void reset(Kifu black, Kifu white)
+        public void reset(UInt32 black, UInt32 white)
         {
             reset();
-
-            // 初期配置
-            for (int i = 0; i < 4; i++)
-            {
-                int bx = black.stones[i].x;
-                int by = black.stones[i].y;
-                setStone(bx, by, black.player);
-                int wx = white.stones[i].x;
-                int wy = white.stones[i].y;
-                setStone(wx, wy, white.player);
-            }
+            blackStones |= black;
+            whiteStones |= white;
         }
 
         // 指定された場所の石を取得する
