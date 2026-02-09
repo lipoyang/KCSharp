@@ -16,7 +16,7 @@ namespace KCSharp
         // マークの直径
         const int MARK_SIZE = 40;
         // 矢印のペンの太さとサイズ
-        Pen arrowPen = new Pen(Color.Black, 4);
+        Pen[] arrowPen = { new Pen(Color.Black, 4), new Pen(Color.White, 4) };
         AdjustableArrowCap arrowCap = new AdjustableArrowCap(6, 6);
 
         /********** 変数 **********/
@@ -208,8 +208,8 @@ namespace KCSharp
                             px2 = (px1 + px2) / 2;
                             py2 = (py1 + py2) / 2;
 
-                            arrowPen.CustomEndCap = arrowCap;
-                            g.DrawLine(arrowPen, px1, py1, px2, py2);
+                            arrowPen[i].CustomEndCap = arrowCap;
+                            g.DrawLine(arrowPen[i], px1, py1, px2, py2);
                         }
                     }
 
