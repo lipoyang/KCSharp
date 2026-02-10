@@ -41,7 +41,7 @@ namespace KCSharp
         // 自乗形四率(Square Keishi Rate)の計算 (0～100)
         private int[] sx_buffer = new int[4];
         private int[] sy_buffer = new int[4];
-        public int getSKR (UInt32 stones)
+        private int getSKR (UInt32 stones)
         {
             int[] sx = sx_buffer;
             int[] sy = sy_buffer;
@@ -67,7 +67,6 @@ namespace KCSharp
             // そのうちの最大値と最小値を求める
             int min = int.MaxValue;
             int max = int.MinValue;
-            idx = 0;
             for (int i = 0; i < 4; i++)
             {
                 for (int j = i + 1; j < 4; j++)
@@ -77,7 +76,6 @@ namespace KCSharp
                     int dist = dx * dx + dy * dy;
                     if (dist < min) min = dist;
                     if (dist > max) max = dist;
-                    idx++;
                 }
             }
 
@@ -87,7 +85,7 @@ namespace KCSharp
         }
 
         // アルファベータ法による先読み (再帰)
-        public int readAlphaBeta(ref Board board, int depth, int alpha, int beta)
+        private int readAlphaBeta(ref Board board, int depth, int alpha, int beta)
         {
             // 中断判定
             if (canceling) return int.MinValue;

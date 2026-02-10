@@ -188,9 +188,8 @@ namespace KCSharp
         // そこに自分の石があるか判定する
         public bool isMyStone(Position pos)
         {
-            int mine = turn;
             if (!isInBoard(pos.x, pos.y)) return false;
-            if (getStone(pos.x, pos.y) != mine) return false;
+            if (getStone(pos.x, pos.y) != turn) return false;
             return true;
         }
 
@@ -329,6 +328,7 @@ namespace KCSharp
             int player = turn;
             UInt32 stones = (player == BLACK) ? blackStones : whiteStones;
             Move lastMove = getLastMove(player);
+            UInt32 occupied = blackStones | whiteStones;
 
             // 盤面から有効な着手を探す
             int cnt = 0;
@@ -346,7 +346,6 @@ namespace KCSharp
                 cnt++;
 
                 // 隣接するマスを調べる
-                UInt32 occupied = blackStones | whiteStones;
                 int dx1 = (x > 0) ? x - 1 : 0;
                 int dx2 = (x < SIZE - 1) ? x + 1 : SIZE - 1;
                 int dy1 = (y > 0) ? y - 1 : 0;
