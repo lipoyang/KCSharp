@@ -43,7 +43,7 @@ namespace KCSharp
         Position selectedStone = Position.NONE;
         // 大パンチ位置データ
         DaiPunch daiPunch = new DaiPunch();
-        
+
         // プレイヤーの先手/後手
         int you = Board.BLACK;
         // CPUの先手/後手
@@ -56,7 +56,7 @@ namespace KCSharp
         // 初期局面の数
         const int initPosMax = 96;
         // 初期局面データ
-        InitialPosition initialPosition = 
+        InitialPosition initialPosition =
             new InitialPosition("InitialPosition.csv", initPosMax);
 
         // ランダム局面データ
@@ -65,14 +65,14 @@ namespace KCSharp
 
         // 盤面の描画用
         Bitmap canvas;
-        
+
         /********** メソッド **********/
         #region コンストラクタ
         public FormMain()
         {
             InitializeComponent();
             buttonChange.Location = new Point(710, 218); // ボタン位置調整
-            
+
             // 盤面の描画用
             canvas = new Bitmap(pictureBoard.Width, pictureBoard.Height);
 
@@ -120,7 +120,7 @@ namespace KCSharp
             Graphics g = Graphics.FromImage(canvas);
 
             // 盤面の背景色 
-            g.FillRectangle(Brushes.DarkTurquoise, 
+            g.FillRectangle(Brushes.DarkTurquoise,
                 0, 0, pictureBoard.Width - 1, pictureBoard.Height - 1);
 
             // 升目の黒線
@@ -144,24 +144,30 @@ namespace KCSharp
             {
                 for (int y = 0; y < Board.SIZE; y++)
                 {
+                    // マスの左上座標と幅
+                    int rx = x * BOX_WIDTH + 1;
+                    int ry = y * BOX_WIDTH + 1;
+                    int rw = BOX_WIDTH - 2;
+                    // マークの左上座標
+                    int mx = x * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
+                    int my = y * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
+                    // 石の左上座標
+                    int sx = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
+                    int sy = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
+
                     // プレイヤーの石が選択されている場合
                     if (selectedStone != Position.NONE)
                     {
                         // 選択中の石はハイライト
                         if (selectedStone.x == x && selectedStone.y == y)
                         {
-                            int px = x * BOX_WIDTH + 1;
-                            int py = y * BOX_WIDTH + 1;
-                            int pw = BOX_WIDTH - 2;
-                            g.FillRectangle(Brushes.Gold, px, py, pw, pw);
+                            g.FillRectangle(Brushes.Gold, rx, ry, rw, rw);
                         }
                         // 着手可能位置の升目には印を付ける
                         Position pos = new Position(x, y);
                         if (board.isAvailableMove(selectedStone, pos))
                         {
-                            int px = x * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
-                            int py = y * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
-                            g.FillEllipse(Brushes.Gold, px, py, MARK_SIZE, MARK_SIZE);
+                            g.FillEllipse(Brushes.Gold, mx, my, MARK_SIZE, MARK_SIZE);
                         }
                     }
                     // 勝負がついている場合、勝者の石をハイライト
@@ -169,22 +175,17 @@ namespace KCSharp
                     {
                         if (board.getStone(x, y) == winner)
                         {
-                            int px = x * BOX_WIDTH + 1;
-                            int py = y * BOX_WIDTH + 1;
-                            int pw = BOX_WIDTH - 2;
-                            g.FillRectangle(Brushes.DeepPink, px, py, pw, pw);
+                            g.FillRectangle(Brushes.DeepPink, rx, ry, rw, rw);
                         }
                     }
                     // 大パンチ位置に印を付ける
                     else
                     {
                         int punch = daiPunch.getStone(x, y);
-                        if(punch != Board.NONE)
+                        if (punch != Board.NONE)
                         {
-                            int px = x * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
-                            int py = y * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
                             Brush brush = (punch == Board.BLACK) ? Brushes.Black : Brushes.White;
-                            g.FillEllipse(brush, px, py, MARK_SIZE, MARK_SIZE);
+                            g.FillEllipse(brush, mx, my, MARK_SIZE, MARK_SIZE);
                         }
                     }
                     // 直前の着手を矢印で示す
@@ -201,31 +202,27 @@ namespace KCSharp
                             int x2 = lastMove.to.x;
                             int y2 = lastMove.to.y;
 
-                            px1 = x * BOX_WIDTH + BOX_WIDTH / 2;
-                            py1 = y * BOX_WIDTH + BOX_WIDTH / 2;
-                            px2 = x2 * BOX_WIDTH + BOX_WIDTH / 2;
-                            py2 = y2 * BOX_WIDTH + BOX_WIDTH / 2;
-                            px2 = (px1 + px2) / 2;
-                            py2 = (py1 + py2) / 2;
+                            int ax1 = x * BOX_WIDTH + BOX_WIDTH / 2;
+                            int ay1 = y * BOX_WIDTH + BOX_WIDTH / 2;
+                            int ax2 = x2 * BOX_WIDTH + BOX_WIDTH / 2;
+                            int ay2 = y2 * BOX_WIDTH + BOX_WIDTH / 2;
+                            ax2 = (ax1 + ax2) / 2;
+                            ay2 = (ay1 + ay2) / 2;
 
                             arrowPen[i].CustomEndCap = arrowCap;
-                            g.DrawLine(arrowPen[i], px1, py1, px2, py2);
+                            g.DrawLine(arrowPen[i], ax1, ay1, ax2, ay2);
                         }
                     }
 
                     // 先手の石（黒）
                     if (board.getStone(x, y) == Board.BLACK)
                     {
-                        int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
-                        int py = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
-                        g.FillEllipse(Brushes.Black, px, py, STONE_SIZE, STONE_SIZE);
+                        g.FillEllipse(Brushes.Black, sx, sy, STONE_SIZE, STONE_SIZE);
                     }
                     // 後手の石（白）
                     else if (board.getStone(x, y) == Board.WHITE)
                     {
-                        int px = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
-                        int py = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
-                        g.FillEllipse(Brushes.White, px, py, STONE_SIZE, STONE_SIZE);
+                        g.FillEllipse(Brushes.White, sx, sy, STONE_SIZE, STONE_SIZE);
                     }
                 }
             }
@@ -296,10 +293,10 @@ namespace KCSharp
             // 盤面のリセット
             switch (comboGameType.SelectedIndex)
             {
-                // 10番勝負
+                // 96番勝負
                 case 0:
-                    Kifu black = initialPosition.black[initPosNo-1];
-                    Kifu white = initialPosition.white[initPosNo-1];
+                    Kifu black = initialPosition.black[initPosNo - 1];
+                    Kifu white = initialPosition.white[initPosNo - 1];
                     board.reset(black.stones, white.stones);
                     break;
                 // ランダム
@@ -529,7 +526,7 @@ namespace KCSharp
         {
             if (comboGameType.SelectedIndex == 0)
             {
-                // 10番勝負
+                // 96番勝負
                 textGameNumber.Visible = true;
                 buttonPP.Visible = true;
                 buttonP.Visible = true;

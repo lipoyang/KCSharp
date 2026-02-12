@@ -79,7 +79,7 @@
             comboMove.Location = new Point(710, 40);
             comboMove.Name = "comboMove";
             comboMove.Size = new Size(182, 53);
-            comboMove.TabIndex = 2;
+            comboMove.TabIndex = 1;
             // 
             // label2
             // 
@@ -97,7 +97,7 @@
             buttonStart.Location = new Point(710, 303);
             buttonStart.Name = "buttonStart";
             buttonStart.Size = new Size(182, 53);
-            buttonStart.TabIndex = 5;
+            buttonStart.TabIndex = 9;
             buttonStart.Text = "対局開始";
             buttonStart.UseVisualStyleBackColor = true;
             buttonStart.Click += buttonStart_Click;
@@ -121,6 +121,7 @@
             textTurn.ReadOnly = true;
             textTurn.Size = new Size(182, 50);
             textTurn.TabIndex = 7;
+            textTurn.TabStop = false;
             textTurn.TextAlign = HorizontalAlignment.Center;
             // 
             // comboGameType
@@ -132,7 +133,7 @@
             comboGameType.Location = new Point(710, 158);
             comboGameType.Name = "comboGameType";
             comboGameType.Size = new Size(182, 53);
-            comboGameType.TabIndex = 8;
+            comboGameType.TabIndex = 3;
             comboGameType.SelectedIndexChanged += comboGameType_SelectedIndexChanged;
             // 
             // label4
@@ -153,6 +154,7 @@
             textGameNumber.ReadOnly = true;
             textGameNumber.Size = new Size(102, 50);
             textGameNumber.TabIndex = 11;
+            textGameNumber.TabStop = false;
             textGameNumber.TextAlign = HorizontalAlignment.Center;
             // 
             // buttonUndo
@@ -161,7 +163,7 @@
             buttonUndo.Location = new Point(710, 468);
             buttonUndo.Name = "buttonUndo";
             buttonUndo.Size = new Size(84, 53);
-            buttonUndo.TabIndex = 12;
+            buttonUndo.TabIndex = 10;
             buttonUndo.Text = "戻る";
             buttonUndo.UseVisualStyleBackColor = true;
             buttonUndo.Click += buttonUndo_Click;
@@ -172,7 +174,7 @@
             buttonRedo.Location = new Point(808, 468);
             buttonRedo.Name = "buttonRedo";
             buttonRedo.Size = new Size(84, 53);
-            buttonRedo.TabIndex = 13;
+            buttonRedo.TabIndex = 11;
             buttonRedo.Text = "進む";
             buttonRedo.UseVisualStyleBackColor = true;
             buttonRedo.Click += buttonRedo_Click;
@@ -186,6 +188,7 @@
             textTurnNum.ReadOnly = true;
             textTurnNum.Size = new Size(77, 50);
             textTurnNum.TabIndex = 14;
+            textTurnNum.TabStop = false;
             textTurnNum.Text = "0";
             textTurnNum.TextAlign = HorizontalAlignment.Center;
             // 
@@ -208,7 +211,7 @@
             comboLevel.Location = new Point(710, 99);
             comboLevel.Name = "comboLevel";
             comboLevel.Size = new Size(182, 53);
-            comboLevel.TabIndex = 16;
+            comboLevel.TabIndex = 2;
             // 
             // buttonPP
             // 
@@ -216,7 +219,7 @@
             buttonPP.Location = new Point(554, 218);
             buttonPP.Name = "buttonPP";
             buttonPP.Size = new Size(53, 53);
-            buttonPP.TabIndex = 17;
+            buttonPP.TabIndex = 4;
             buttonPP.Text = "≪";
             buttonPP.UseVisualStyleBackColor = true;
             buttonPP.Click += buttonPP_Click;
@@ -227,7 +230,7 @@
             buttonP.Location = new Point(613, 218);
             buttonP.Name = "buttonP";
             buttonP.Size = new Size(53, 53);
-            buttonP.TabIndex = 18;
+            buttonP.TabIndex = 5;
             buttonP.Text = "＜";
             buttonP.UseVisualStyleBackColor = true;
             buttonP.Click += buttonP_Click;
@@ -238,7 +241,7 @@
             buttonNN.Location = new Point(839, 218);
             buttonNN.Name = "buttonNN";
             buttonNN.Size = new Size(53, 53);
-            buttonNN.TabIndex = 20;
+            buttonNN.TabIndex = 7;
             buttonNN.Text = "≫";
             buttonNN.UseVisualStyleBackColor = true;
             buttonNN.Click += buttonNN_Click;
@@ -249,7 +252,7 @@
             buttonN.Location = new Point(780, 218);
             buttonN.Name = "buttonN";
             buttonN.Size = new Size(53, 53);
-            buttonN.TabIndex = 19;
+            buttonN.TabIndex = 6;
             buttonN.Text = "＞";
             buttonN.UseVisualStyleBackColor = true;
             buttonN.Click += buttonN_Click;
@@ -260,7 +263,7 @@
             buttonChange.Location = new Point(522, 303);
             buttonChange.Name = "buttonChange";
             buttonChange.Size = new Size(182, 53);
-            buttonChange.TabIndex = 21;
+            buttonChange.TabIndex = 8;
             buttonChange.Text = "チェンジ";
             buttonChange.UseVisualStyleBackColor = true;
             buttonChange.Click += buttonChange_Click;

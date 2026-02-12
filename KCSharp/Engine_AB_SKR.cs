@@ -161,10 +161,6 @@ namespace KCSharp
                 if ((player != myOrder) && (eval < beta))
                 {
                     beta = eval;
-                    if (depth == 0)
-                    {
-                        bestMove = nextMoves[i];
-                    }
                     if (beta <= alpha) {
                         beta = alpha;
                         break;
