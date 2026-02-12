@@ -5,6 +5,7 @@
 - [「形四」ゲームの解説：ひとコマ解説 - dnjiro’s 9VAe blog](https://dnjiro.hatenablog.com/entry/keisi)
 
 KCSharp は、C#で作成したWindows用の形四アプリです。  
+開発環境は Visual Studio 2026 です。  
 実行ファイルのダウンロードは [こちら](https://github.com/lipoyang/KCSharp/releases/) から。
 
 <img src="./screen.png" alt="スクリーンショット" width="633" />
