@@ -14,7 +14,8 @@ namespace KCSharp
         // 石の直径
         const int STONE_SIZE = 80;
         // マークの直径
-        const int MARK_SIZE = 40;
+        const int MARK1_SIZE = 45;
+        const int MARK2_SIZE = 35;
         // 矢印のペンの太さとサイズ
         Pen[] arrowPen = { new Pen(Color.Black, 4), new Pen(Color.White, 4) };
         AdjustableArrowCap arrowCap = new AdjustableArrowCap(6, 6);
@@ -149,8 +150,10 @@ namespace KCSharp
                     int ry = y * BOX_WIDTH + 1;
                     int rw = BOX_WIDTH - 2;
                     // マークの左上座標
-                    int mx = x * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
-                    int my = y * BOX_WIDTH + (BOX_WIDTH - MARK_SIZE) / 2;
+                    int m1x = x * BOX_WIDTH + (BOX_WIDTH - MARK1_SIZE) / 2;
+                    int m1y = y * BOX_WIDTH + (BOX_WIDTH - MARK1_SIZE) / 2;
+                    int m2x = x * BOX_WIDTH + (BOX_WIDTH - MARK2_SIZE) / 2;
+                    int m2y = y * BOX_WIDTH + (BOX_WIDTH - MARK2_SIZE) / 2;
                     // 石の左上座標
                     int sx = x * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
                     int sy = y * BOX_WIDTH + (BOX_WIDTH - STONE_SIZE) / 2;
@@ -167,7 +170,7 @@ namespace KCSharp
                         Position pos = new Position(x, y);
                         if (board.isAvailableMove(selectedStone, pos))
                         {
-                            g.FillEllipse(Brushes.Gold, mx, my, MARK_SIZE, MARK_SIZE);
+                            g.FillEllipse(Brushes.Gold, m1x, m1y, MARK1_SIZE, MARK1_SIZE);
                         }
                     }
                     // 勝負がついている場合、勝者の石をハイライト
@@ -185,7 +188,7 @@ namespace KCSharp
                         if (punch != Board.NONE)
                         {
                             Brush brush = (punch == Board.BLACK) ? Brushes.Black : Brushes.White;
-                            g.FillEllipse(brush, mx, my, MARK_SIZE, MARK_SIZE);
+                            g.FillEllipse(brush, m2x, m2y, MARK2_SIZE, MARK2_SIZE);
                         }
                     }
                     // 直前の着手を矢印で示す
