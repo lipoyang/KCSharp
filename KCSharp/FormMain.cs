@@ -315,6 +315,30 @@ namespace KCSharp
             drawBoard();
             updateControls();
         }
+
+        // 着手と棋譜更新
+        private void doMoveAndRecord(Move move)
+        {
+            // 着手
+            board.doMove(move);
+            turnCnt++;
+            // 通常は棋譜に追加
+            if (turnCnt == record.Count) {
+                record.Add(board);
+            }
+            // やり直しの場合、以降の棋譜を削除
+            else if (turnCnt < record.Count) {
+                record[turnCnt] = board;
+                int del_index = turnCnt + 1;
+                if (del_index < record.Count) {
+                    record.RemoveRange(del_index, record.Count - del_index);
+                }
+            }
+            // 異常な場合
+            else {
+                MessageBox.Show("棋譜に予期しないエラーが発生しました。");
+            }
+        }
         #endregion
 
         #region タスク関数
@@ -325,10 +349,9 @@ namespace KCSharp
             Move move = cpuEngine.getNextMove(board);
             // 中断判定(投了)
             if (move == KCSharp.Move.NONE) return;
-            // 着手
-            board.doMove(move);
-            turnCnt++;
-            record.Add(board);
+            // 着手と棋譜更新
+            doMoveAndRecord(move);
+            // 大パンチ判定
             daiPunch.check(board);
 
             this.Invoke((Action)(() =>
@@ -364,10 +387,9 @@ namespace KCSharp
             Move move = cpu2Engine.getNextMove(board);
             // 中断判定(投了)
             if (move == KCSharp.Move.NONE) return;
-            // 着手
-            board.doMove(move);
-            turnCnt++;
-            record.Add(board);
+            // 着手と棋譜更新
+            doMoveAndRecord(move);
+            // 大パンチ判定
             daiPunch.check(board);
 
             this.Invoke((Action)(() =>
@@ -490,13 +512,13 @@ namespace KCSharp
                 // 有効な着手かチェック
                 if (board.isAvailableMove(selectedStone, pos))
                 {
-                    // 着手する
                     Move move = new Move(selectedStone, pos);
-                    board.doMove(move);
-                    selectedStone = Position.NONE;
-                    turnCnt++;
-                    record.Add(board);
+                    // 着手と棋譜更新
+                    doMoveAndRecord(move);
+                    // 大パンチ判定
                     daiPunch.check(board);
+                    // 選択中の石をクリア
+                    selectedStone = Position.NONE;
 
                     // 盤面の描画
                     drawBoard();
