@@ -322,7 +322,7 @@ namespace KCSharp
         }
 
         // 次の手を列挙する
-        public int enumNextMoves(Span<Move> nextMoves)
+        public int enumNextMoves(Move[] nextMoves)
         {
             int moveCount = 0;
             int player = turn;
@@ -384,7 +384,7 @@ namespace KCSharp
     class DaiPunch
     {
         // 大パンチチェック用の候補手バッファ
-        private Move[] movesBuffer = new Move[32];
+        private Move[] nextMoves = new Move[32];
 
         public Board positions = new Board();
 
@@ -397,8 +397,7 @@ namespace KCSharp
             for (int player = Board.BLACK; player <= Board.WHITE; player++)
             {
                 _board.turn = player;
-                Span<Move> nextMoves = new Span<Move>(movesBuffer, 0, 32);
-                int cnt = _board.enumNextMoves(movesBuffer);
+                int cnt = _board.enumNextMoves(nextMoves);
                 for (int i = 0; i < cnt; i++)
                 {
                     Board nextBoard = _board;

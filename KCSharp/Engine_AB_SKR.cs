@@ -13,14 +13,20 @@ namespace KCSharp
         // 次の手の候補用バッファ (1局面最大32通り×最大探索深さ)
         private const int MAX_MOVE = 32;
         private const int MAX_DEPTH = 10;
-        private Move[] moveBuffer = new Move[MAX_MOVE * MAX_DEPTH];
+        private Move[][] moveBuffer;
 
         // 乱数生成器
         private Random rand = new Random();
 
         /********** メソッド **********/
         // コンストラクタ (読みの深さと先手/後手を指定)
-        public Engine_AB_SKR(int depth, int order) : base(depth, order) { }
+        public Engine_AB_SKR(int depth, int order) : base(depth, order) {
+            moveBuffer = new Move[MAX_DEPTH][];
+            for (int i=0; i < MAX_DEPTH; i++)
+            {
+                moveBuffer[i] = new Move[MAX_MOVE];
+            }
+        }
 
         // 次の手を取得する
         public override Move getNextMove(Board board)
@@ -95,7 +101,7 @@ namespace KCSharp
             int hisEval = getSKR(hisStones);
 
             // 次の局面を列挙
-            Span<Move> nextMoves = new Span<Move>(moveBuffer, MAX_MOVE * depth, MAX_MOVE);
+            Move[] nextMoves = moveBuffer[depth];
             int moveCount = board.enumNextMoves(nextMoves);
 
             int player = board.turn;
